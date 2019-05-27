@@ -1,0 +1,10 @@
+
+language: node_js
+os: linux
+addons:
+  apt:
+    packages:
+      - php
+node_js: 9
+install: npm install -g ottomatica/docable
+script: docable report unix-service/steps.yml
