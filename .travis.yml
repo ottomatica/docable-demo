@@ -3,6 +3,7 @@ language: node_js
 os: linux
 addons:
   apt:
+    update: true
     packages:
       - php
 node_js: 9
