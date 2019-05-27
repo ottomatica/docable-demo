@@ -7,7 +7,7 @@ addons:
     update: true
     packages:
       - php7.0
-      - netcat-traditional
+      - netcat-openbsd
 node_js: 9
 install: npm install -g ottomatica/docable
 script: docable report unix-service/steps.yml
