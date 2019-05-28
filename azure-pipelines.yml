@@ -34,7 +34,7 @@ steps:
   displayName: 'Configure Git to use SSH deploy key for deploy repo'
 
 - script: |
-    git clone 
+    git clone git@github.com:ottomatica/docable-demo.git
     cd gh-pages
     git checkout gh-pages
     mkdir -p $(Build.SourceVersion)
