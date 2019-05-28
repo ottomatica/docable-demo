@@ -35,7 +35,7 @@ steps:
 
 - script: |
     git clone git@github.com:ottomatica/docable-demo.git
-    cd gh-pages
+    cd docable-demo
     git checkout gh-pages
     mkdir -p $(Build.SourceVersion)
     cp $(Agent.BuildDirectory)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
