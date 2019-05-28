@@ -38,8 +38,9 @@ steps:
     cd docable-demo
     git checkout gh-pages
     mkdir -p $(Build.SourceVersion)
-    cp $(Agent.BuildDirectory)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
+    ls -al $(Build.Repository.LocalPath)
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
     git add .
     git commit -m "Copying feedback to gh-pages"
     git push origin gh-pages
-  displayName: 'Build and publish'
+  displayName: 'Run Docable and publish feedback'
