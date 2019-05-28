@@ -26,9 +26,9 @@ steps:
     chmod 700 ~/.ssh
     ssh-keyscan github.com > ~/.ssh/known_hosts
     chmod 644 ~/.ssh/known_hosts
-    chmod 400 $DOWNLOADSECUREFILE2_SECUREFILEPATH
+    chmod 400 $DOWNLOADSECUREFILE1_SECUREFILEPATH
     echo "Host github.com
-    IdentityFile $DOWNLOADSECUREFILE2_SECUREFILEPATH" > ~/.ssh/config 
+    IdentityFile $DOWNLOADSECUREFILE1_SECUREFILEPATH" > ~/.ssh/config 
     git config --global user.email "azure-pipelines[bot]@users.noreply.github.com"
     git config --global user.name "azure-pipelines[bot]"
   displayName: 'Configure Git to use SSH deploy key for deploy repo'
