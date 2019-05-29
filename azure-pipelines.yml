@@ -44,4 +44,7 @@ steps:
     git add .
     git commit -m "Copying feedback to gh-pages"
     git push origin gh-pages
-  displayName: 'Run Docable and publish feedback'
+  displayName: 'Publish feedback Docable'
+
+- script: echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html"
+  displayName: 'Go to https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html to see results'
