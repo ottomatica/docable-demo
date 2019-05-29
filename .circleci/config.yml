@@ -5,11 +5,7 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - run:
-          name: "Update Node.js and npm"
-          command: |
-            curl -sSL "https://nodejs.org/dist/v11.10.0/node-v11.10.0-linux-x64.tar.xz" | sudo tar --strip-components=2 -xJ -C /usr/local/bin/ node-v11.10.0-linux-x64/bin/node
-            curl https://www.npmjs.com/install.sh | sudo bash
+      - run: nvm install v10.16.0 && nvm use v10.16.0
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
 
