@@ -66,4 +66,3 @@ And automatically get it to start on boot:
 ```
 $ systemctl enable rot13
 ```
-
