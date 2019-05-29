@@ -1,11 +1,7 @@
 version: 2
 jobs:
   build:
-    machine:
-      php:
-        version: 7.1
-      node:
-        version: v10.16.0
+    machine: true
     steps:
       - checkout
       - run: npm install -g ottomatica/docable
