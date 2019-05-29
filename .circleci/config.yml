@@ -1,0 +1,8 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run: npm install -g ottomatica/docable
+      - run: docable report unix-service/steps.yml
