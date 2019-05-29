@@ -1,0 +1,51 @@
+<!-- Inspired from https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6 --><html><head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+                    </style></head><body class="markdown-body"><h2 id="the-program">The program</h2>
+<p>Let&#x2019;s create a small server using PHP. I can see your eyebrows rising, but it works surprisingly well. We&#x2019;ll listen to UDP port 10000, and return any message received with a ROT13 transformation:</p>
+<pre style="background-color: #BDFCC9;">&#x2713; &lt;?php
+$sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+socket_bind($sock, &apos;0.0.0.0&apos;, 10000);
+for (;;) {
+    socket_recvfrom($sock, $message, 1024, 0, $ip, $port);
+    $reply = str_rot13($message);
+    socket_sendto($sock, $reply, strlen($reply), 0, $ip, $port);
+}</pre><p>Let&#x2019;s start it:</p>
+<pre style="background-color: #BDFCC9;">&#x2713; $ php server.php</pre><p>And test it in another terminal:</p>
+<pre style="background-color: #BDFCC9;">&#x2713; client$ echo &apos;Hello, world!&apos; | nc -q 1 -u 127.0.0.1 10000
+Uryyb, jbeyq!</pre><p>Cool, it works. Now we want this script to run at all times, be restarted in case of a failure (unexpected exit), and even survive server restarts. That&#x2019;s where systemd comes into play.</p>
+<p>Turning it into a service
+Let&#x2019;s create a file called <code>/etc/systemd/system/rot13.service</code>:</p>
+<pre><code>[Unit]
+<span class="hljs-attribute">Description</span>=ROT13 demo<span class="hljs-built_in"> service
+</span><span class="hljs-attribute">After</span>=network.target
+<span class="hljs-attribute">StartLimitIntervalSec</span>=0
+[Service]
+<span class="hljs-attribute">Type</span>=simple
+<span class="hljs-attribute">Restart</span>=always
+<span class="hljs-attribute">RestartSec</span>=1
+<span class="hljs-attribute">User</span>=centos
+<span class="hljs-attribute">ExecStart</span>=/usr/bin/env php /path/<span class="hljs-keyword">to</span>/server.php
+
+[Install]
+<span class="hljs-attribute">WantedBy</span>=multi-user.target</code></pre><p>You&#x2019;ll need to:</p>
+<ul>
+<li>set your actual username after <code>User=</code></li>
+<li>set the proper path to your script in <code>ExecStart=</code></li>
+</ul>
+<p>That&#x2019;s it. We can now start the service:</p>
+<pre><code>$ systemctl <span class="hljs-literal">start</span> rot13</code></pre><p>And automatically get it to start on boot:</p>
+<pre><code>$ systemctl <span class="hljs-builtin-name">enable</span> rot13</code></pre></body></html>
