@@ -12,3 +12,9 @@ jobs:
             curl https://www.npmjs.com/install.sh | sudo bash
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
