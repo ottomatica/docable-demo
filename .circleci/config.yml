@@ -11,7 +11,7 @@ jobs:
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
       - store_artifacts:
-          path: examples/unix-service/docable_results/unix-service.html
+          path: unix-service/docable_results/unix-service.html
 
 workflows:
   version: 2
