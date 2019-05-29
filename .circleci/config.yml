@@ -1,11 +1,13 @@
 version: 2
 jobs:
   build:
-    machine:
-      image: ubuntu-1604:201903-01
+    branches:
+      only:
+        - master  
+    docker:
+     - image: misterio92/ci-php-node
     steps:
       - checkout
-      - run: nvm install v10.16.0 && nvm use v10.16.0
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
 
