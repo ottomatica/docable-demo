@@ -1,5 +1,5 @@
 setup:
-  local: true
+  local: true 
   # slim:
   #   image: ubuntu16.04-php
 
