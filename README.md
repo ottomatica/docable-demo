@@ -8,3 +8,9 @@
 ### KVM
 
 [![builds.sr.ht status](https://builds.sr.ht/~ottomatica.svg)](https://builds.sr.ht/~ottomatica?)
+
+
+### HTML REPORT
+
+Published at:
+https://ottomatica.github.io/docable-demo/latest/unix-service.html
