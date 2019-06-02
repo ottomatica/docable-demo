@@ -12,6 +12,7 @@ packages:
 sources:
 - https://github.com/ottomatica/slim
 - https://github.com/ottomatica/docable
+- https://github.com/ottomatica/docable-demo
 environment:
     npm_config_prefix: ~/.node_modules
 tasks:
