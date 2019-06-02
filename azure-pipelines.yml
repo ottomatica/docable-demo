@@ -38,8 +38,10 @@ steps:
     git clone git@github.com:ottomatica/docable-demo.git
     cd docable-demo
     git checkout gh-pages
+    mkdir -p latest
     mkdir -p $(Build.SourceVersion)
     ls -al $(Build.Repository.LocalPath)
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html latest/
     cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
     git add .
     git commit -m "Copying feedback to gh-pages"
