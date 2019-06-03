@@ -7,7 +7,6 @@
 
 [![builds.sr.ht status](https://builds.sr.ht/~ottomatica.svg)](https://builds.sr.ht/~ottomatica?)
 
-
 ### Docable HTML report
 
 [![Docable](https://img.shields.io/badge/Docable-Results-blue.svg)](https://ottomatica.github.io/docable-demo/latest/unix-service.html)
