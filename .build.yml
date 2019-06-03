@@ -8,7 +8,7 @@ packages:
 - docker
 - cdrtools
 - cpio
-- links
+- w3m
 sources:
 - https://github.com/ottomatica/slim
 - https://github.com/ottomatica/docable
@@ -36,4 +36,4 @@ tasks:
 - report: |
     cd docable-demo
     docable report unix-service/steps-kvm.yml
-    links -dump unix-service/docable_results/unix-service.html
+    w3m -dump unix-service/docable_results/unix-service.html
