@@ -36,4 +36,4 @@ tasks:
 - report: |
     cd docable-demo
     docable report unix-service/steps-kvm.yml
-    links -dump unix-service/docable_results/unix-service.html | printf %b
+    links -dump unix-service/docable_results/unix-service.html
