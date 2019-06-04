@@ -10,6 +10,7 @@ jobs:
       - checkout
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
+      - run: cd engine && npm install && node lintmd.js ../unix-service
       - store_artifacts:
           path: unix-service/docable_results/unix-service.html
 
