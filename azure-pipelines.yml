@@ -1,0 +1,52 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- script: npm install -g ottomatica/docable
+  displayName: 'Install Docable'
+
+- script: docable report unix-service/steps.yml
+  displayName: 'Run Docable on unix-service example'
+
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: docable_rsa
+  displayName: 'Copy ssh key to /tmp'
+
+- script: |
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    ssh-keyscan github.com > ~/.ssh/known_hosts
+    chmod 644 ~/.ssh/known_hosts
+    chmod 400 $DOWNLOADSECUREFILE_SECUREFILEPATH
+    echo "Host github.com
+    IdentityFile $DOWNLOADSECUREFILE_SECUREFILEPATH" > ~/.ssh/config
+    cat ~/.ssh/config
+    git config --global user.email "azure-pipelines[bot]@users.noreply.github.com"
+    git config --global user.name "azure-pipelines[bot]"
+  displayName: 'Configure Git to use SSH deploy key'
+
+- script: |
+    git clone git@github.com:ottomatica/docable-demo.git
+    cd docable-demo
+    git checkout gh-pages
+    mkdir -p latest
+    mkdir -p $(Build.SourceVersion)
+    ls -al $(Build.Repository.LocalPath)
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html latest/
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
+    git add .
+    git commit -m "Copying feedback to gh-pages"
+    git push origin gh-pages
+  displayName: 'Publish feedback Docable'
+
+- script: echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html"
+  displayName: 'Go to https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html to see results'

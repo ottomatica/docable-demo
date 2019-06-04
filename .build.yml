@@ -1,0 +1,39 @@
+image: archlinux
+packages:
+- libvirt
+- qemu
+- qemu-arch-extra
+- nodejs
+- npm
+- docker
+- cdrtools
+- cpio
+- w3m
+sources:
+- https://github.com/ottomatica/slim
+- https://github.com/ottomatica/docable
+- https://github.com/ottomatica/docable-demo
+environment:
+    npm_config_prefix: ~/.node_modules
+tasks:
+- system_setup: |
+    sudo mount -t tmpfs -o size=4G /dev/null /dev/shm
+    sleep 2
+    sudo nohup dockerd --bip 172.18.0.1/16 </dev/null >/dev/null 2>&1 &
+    sleep 5
+    sudo usermod -aG docker build
+- slim_setup: |
+    cd slim
+    npm install
+    sudo npm link
+- docable_setup: |
+    cd docable
+    npm install
+    sudo npm link
+- test: |
+    cd docable-demo
+    docable test unix-service/steps-kvm.yml
+- report: |
+    cd docable-demo
+    docable report unix-service/steps-kvm.yml
+    w3m -dump unix-service/docable_results/unix-service.html
