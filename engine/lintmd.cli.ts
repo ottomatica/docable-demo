@@ -3,6 +3,8 @@ import { parse, toMd, render } from './remark.v2'
 import { promises } from 'fs'
 import path from 'path'
 import commander from 'commander'
+require('colors');
+var jsdiff = require('diff');
 const testreport = require('./node_modules/docable/');
 
 commander
@@ -29,15 +31,16 @@ commander.on('command:*', async (paths: string[] | undefined) => {
     
     if (content === parsedContent) {
       console.log(`${it} ✅`)
-      // return
+      continue
     }
     if (content !== parsedContent && commander.write) {
       console.log(`${it} ✏️`)
       await promises.writeFile(it, parsedContent)
       return
     }
+    await printDiff(content, parsedContent)
     console.log(`lintmd result: ${it} ❌`)
-    // exit(1)
+    exit(1)
   }
   await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')});
 })
@@ -61,4 +64,14 @@ commander.parse(process.argv)
 
 if (commander.args.length === 0) {
   commander.help()
+}
+
+async function printDiff(string1: string, string2: string){
+  var diff = jsdiff.diffChars(string1, string2)
+  diff.forEach(function(part: any){
+    // green for additions, red for deletions, and grey for common parts
+    let color = part.added ? 'green' :
+      part.removed ? 'red' : 'grey'
+    process.stderr.write(part.value[color])
+  });
 }

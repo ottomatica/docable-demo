@@ -1,4 +1,3 @@
-
 <!-- Inspired from https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6 -->
 
 ## The program
@@ -25,7 +24,7 @@ $ php server.php
 And test it in another terminal:
 
 ```
-client$ echo 'Hello, world!' | nc -q 1 -u 127.0.0.1 10000
+client$ echo 'Hello, world!' | nc -w 1 -u 127.0.0.1 10000
 Uryyb, jbeyq!
 ```
 
@@ -52,8 +51,8 @@ WantedBy=multi-user.target
 
 You’ll need to:
 
-* set your actual username after `User=`
-* set the proper path to your script in `ExecStart=`
+- set your actual username after `User=`
+- set the proper path to your script in `ExecStart=`
 
 That’s it. We can now start the service:
 
@@ -66,4 +65,3 @@ And automatically get it to start on boot:
 ```
 $ systemctl enable rot13
 ```
-
