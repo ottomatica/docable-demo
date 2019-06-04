@@ -8,6 +8,7 @@ jobs:
      - image: misterio92/ci-php-node
     steps:
       - checkout
+      - run: apt-get update && apt-get install -y netcat-openbsd
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
       - run: cd engine && npm install && node lintmd.js ../unix-service
