@@ -2,7 +2,8 @@ version: 2
 jobs:
   build:
     branches:
-      only: master
+      only: 
+        - master
     docker:
       - image: misterio92/ci-php-node
     steps:
