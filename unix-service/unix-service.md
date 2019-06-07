@@ -57,11 +57,11 @@ You’ll need to:
 That’s it. We can now start the service:
 
 ```
-$ systemctl start rot13
+$ sudo systemctl start rot13
 ```
 
 And automatically get it to start on boot:
 
 ```
-$ systemctl enable rot13
+$ sudo systemctl enable rot13
 ```
