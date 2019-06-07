@@ -1,10 +1,6 @@
 version: 2
 jobs:
   build:
-    filters:
-      branches:
-        only: 
-          - master
     docker:
       - image: misterio92/ci-php-node
     steps:
@@ -21,4 +17,8 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: 
+                - master
