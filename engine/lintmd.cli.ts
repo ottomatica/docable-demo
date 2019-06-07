@@ -11,6 +11,7 @@ commander
   .version('1.0.0')
   .usage(`lintmd 'src/**/*.md'`)
   .option('--write', 'Write the parsed file in place')
+  .option("-r, --renderer [renderer]", "Which renderer to use [renderer]")
   .parse(process.argv)
 
 commander.on('command:*', async (paths: string[] | undefined) => {
@@ -24,11 +25,7 @@ commander.on('command:*', async (paths: string[] | undefined) => {
   for(let it of ls(paths).filter(path => path.includes('.md'))) {
     const content = await promises.readFile(path.resolve(paths[0], it), 'utf8')
     const parsedContent = toMd(parse(content))
-    
-    // console.log('parse => ', JSON.stringify(parse(content)))
-    // console.log('==============')
-    // console.log('toMD => ', parsedContent);
-    
+
     if (content === parsedContent) {
       console.log(`${it} ✅`)
       continue
@@ -42,22 +39,24 @@ commander.on('command:*', async (paths: string[] | undefined) => {
     console.log(`lintmd result: ${it} ❌`)
     exit(1)
   }
-  await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')});
+  
+  await runDocable(paths);
 })
 
-commander.on('command:render', (paths: string[] | undefined) => {
+commander.on('command:render', async (paths: string[] | undefined) => {
   if (!paths || paths.length === 0) {
     commander.help()
     exit(1)
     return
   }
-  ls(paths).forEach(async it => {
-    let renderedHTML = render(it);
-    // promises.writeFile('test.json', JSON.stringify(renderedHTML))
-    promises.writeFile(path.join(process.cwd(), path.basename(it)+'.html'), renderedHTML.props.dangerouslySetInnerHTML.__html)
-  })
 
-  testreport();
+  let renderedHTML:any;
+  for(let it of ls(paths).filter(path => path.includes('.md'))) {
+    renderedHTML = render(path.resolve(paths[0], it));
+    await promises.writeFile(path.join(process.cwd(), path.basename(it)+'.html'), renderedHTML.props.dangerouslySetInnerHTML.__html)
+  }
+
+  await runDocable(paths);
 })
 
 commander.parse(process.argv)
@@ -74,4 +73,18 @@ async function printDiff(string1: string, string2: string){
       part.removed ? 'red' : 'grey'
     process.stderr.write(part.value[color])
   });
+}
+
+async function runDocable(paths: string[]) {
+  switch (commander.renderer) {
+    case 'learnk8s':
+      console.log(`Using renderer ⚙️ : learnk8s`)
+      await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')}, {parser : (file: string) => render(path.resolve(paths[0], file)).props.dangerouslySetInnerHTML.__html} );  
+      break;
+
+    default:
+      console.log(`Using renderer ⚙️ : marked`)
+      await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')});
+      break;
+  }
 }
