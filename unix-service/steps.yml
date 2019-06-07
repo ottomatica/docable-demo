@@ -9,5 +9,3 @@ unix-service.md:
     - selectAndServe: "start it:"
     - selectAndExpect: "another terminal:"
 
-unix-service-inline.md:
-  steps: inline
