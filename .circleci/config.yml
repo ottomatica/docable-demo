@@ -12,6 +12,7 @@ jobs:
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
       - run: cd engine && npm install && node lintmd.js ../unix-service
+      - run: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
       - store_artifacts:
           path: unix-service/docable_results/unix-service.html
 
