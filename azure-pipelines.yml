@@ -15,6 +15,7 @@ steps:
 
 - script: docable report unix-service/steps.yml
   displayName: 'Run Docable on unix-service example'
+  continueOnError: true
 
 - task: DownloadSecureFile@1
   inputs:
