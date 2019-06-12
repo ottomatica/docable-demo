@@ -3,8 +3,13 @@ setup:
     image: ubuntu16.04-php
     provider: kvm
 
-unix-service.md: 
+unix-service.md:
   steps:
-    - selectAsFile: ROT13 transformation => server.php
-    - selectAndServe: "start it:"
+    - selectAsFile: ROT13 transformation => /root/server.php
+    - selectAsFile: "create a file called => /etc/systemd/system/rot13.service"
+    - selectAndRun: "start the service:"
+    - selectAndRun: "start on boot:"
+    - selectAndRun: "started successfully:"
+    - selectAndRun: "journalctl output:"
     - selectAndExpect: "another terminal:"
+
