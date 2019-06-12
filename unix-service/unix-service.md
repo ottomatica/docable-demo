@@ -38,12 +38,13 @@ Let’s create a file called `/etc/systemd/system/rot13.service`:
 Description=ROT13 demo service
 After=network.target
 StartLimitIntervalSec=0
+
 [Service]
 Type=simple
 Restart=always
 RestartSec=1
-User=centos
-ExecStart=/usr/bin/env php ~/server.php
+User=root
+ExecStart=/bin/sh -c "php $HOME/server.php"
 
 [Install]
 WantedBy=multi-user.target
@@ -57,11 +58,23 @@ You’ll need to:
 That’s it. We can now start the service:
 
 ```
-$ sudo systemctl start rot13
+$ systemctl start rot13
 ```
 
 And automatically get it to start on boot:
 
 ```
-$ sudo systemctl enable rot13
+$ systemctl enable rot13
+```
+
+check status of the service to make sure it was started successfully:
+
+```
+$ systemctl status rot13
+```
+
+and if the service wasn't running, the check journalctl output:
+
+```
+$ journalctl -xe | tail -50 >&2
 ```
