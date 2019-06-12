@@ -10,7 +10,7 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
-- script: npm install -g ottomatica/docable#sudo
+- script: npm install -g ottomatica/docable
   displayName: 'Install Docable'
 
 - script: docable report unix-service/steps.yml
