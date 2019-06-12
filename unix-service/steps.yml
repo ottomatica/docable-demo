@@ -15,6 +15,9 @@ unix-service.md:
       user: root
     - selectAndRun: "start on boot:"
       user: root
-    # - selectAndServe: "start it:"
+    - selectAndRun: "started successfully:"
+      user: root
+    - selectAndRun: "journalctl output:"
+      user: root
     - selectAndExpect: "another terminal:"
 
