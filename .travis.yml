@@ -10,6 +10,4 @@ addons:
       - netcat-openbsd
 node_js: 9
 install: npm install -g ottomatica/docable#sudo
-script: whoami
-script: sudo -u root whoami
 script: docable report unix-service/steps.yml
