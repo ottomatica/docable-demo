@@ -6,6 +6,7 @@ jobs:
     machine: true
     steps:
       - checkout
+      - run: sudo apt-get update
       - run: sudo apt-get update && apt-get install -y netcat-openbsd
       - run: npm install -g ottomatica/docable
       - run: docable report unix-service/steps.yml
