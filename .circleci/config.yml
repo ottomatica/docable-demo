@@ -1,8 +1,9 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: misterio92/ci-php-node
+    # docker:
+    #   - image: misterio92/ci-php-node
+    machine: true
     steps:
       - checkout
       - run: apt-get update && apt-get install -y netcat-openbsd
