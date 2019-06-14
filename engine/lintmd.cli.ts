@@ -76,10 +76,19 @@ async function printDiff(string1: string, string2: string){
 }
 
 async function runDocable(paths: string[]) {
+  let options = {
+    renderer: {parser : (file: string) => render(path.resolve(paths[0], file)).props.dangerouslySetInnerHTML.__html},
+    selector: customCodeBlockSelector,
+    css: {
+      passing: '.passing { background-color: #e6ffe6 !important }',
+      failing: '.failing { background-color: #ffe6e6 !important }'
+    }
+  }
+
   switch (commander.renderer) {
     case 'learnk8s':
       console.log(`Using renderer ⚙️ : learnk8s`)
-      await testreport("report", {stepfile: path.join(paths[0], 'steps-inline.yml')}, {parser : (file: string) => render(path.resolve(paths[0], file)).props.dangerouslySetInnerHTML.__html}, customCodeBlockSelector );  
+      await testreport("report", {stepfile: path.join(paths[0], 'steps-inline.yml')}, options );
       break;
 
     default:
