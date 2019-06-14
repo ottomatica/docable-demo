@@ -10,18 +10,6 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
-- script: npm install -g ottomatica/docable
-  displayName: 'Install Docable'
-
-- script: docable report unix-service/steps.yml
-  displayName: 'Run Docable on unix-service example'
-  continueOnError: true
-
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: docable_rsa
-  displayName: 'Copy ssh key to /tmp'
-
 - script: |
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
@@ -35,6 +23,22 @@ steps:
     git config --global user.name "azure-pipelines[bot]"
   displayName: 'Configure Git to use SSH deploy key'
 
+- script: npm install -g ottomatica/docable
+  displayName: 'Install Docable'
+
+- script: docable report unix-service/steps.yml
+  displayName: 'Run Docable on unix-service example'
+  continueOnError: true
+
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: docable_rsa
+  displayName: 'Copy ssh key to /tmp'
+
+- script: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
+  displayName: 'Run Docable with custom renderer/css on unix-service example'
+  continueOnError: true
+
 - script: |
     git clone git@github.com:ottomatica/docable-demo.git
     cd docable-demo
@@ -42,20 +46,18 @@ steps:
     mkdir -p latest
     mkdir -p $(Build.SourceVersion)
     ls -al $(Build.Repository.LocalPath)
-    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html latest/
-    cp $(Build.Repository.LocalPath)/unix-service/docable_results/unix-service.html $(Build.SourceVersion)/
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/*.html latest/
+    cp $(Build.Repository.LocalPath)/unix-service/docable_results/*.html $(Build.SourceVersion)/
     git add .
     git commit -m "Copying feedback to gh-pages"
     git push origin gh-pages
-  displayName: 'Publish feedback Docable'
+  displayName: 'Copying Docable feedback and publishing'
 
 # - script: cd engine && npm install && node lintmd.js ../unix-service
 #   displayName: 'Run learnk8s lintmd on unix-service example'
 #   continueOnError: true
 
-- script: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
-  displayName: 'Run Docable with custom renderer on unix-service example'
-  continueOnError: true
-
-- script: echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html"
+- script: |
+    echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html"
+    echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service-inline.html"
   displayName: 'Go to https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html to see results'
