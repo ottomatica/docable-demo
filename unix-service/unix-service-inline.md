@@ -17,16 +17,16 @@ for (;;) {
 
 Let’s start it:
 
-```bash|serve
+<!-- ```bash|serve
 $ php server.php
-```
+``` -->
 
 And test it in another terminal:
 
-```bash|expect=1
+<!-- ```bash|expect=1
 client$ echo 'Hello, world!' | nc -w 1 -u 127.0.0.1 10000
 Uryyb, jbeyq!
-```
+``` -->
 
 Cool, it works. Now we want this script to run at all times, be restarted in case of a failure (unexpected exit), and even survive server restarts. That’s where systemd comes into play.
 
