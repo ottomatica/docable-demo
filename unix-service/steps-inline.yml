@@ -1,0 +1,5 @@
+setup:
+  local: true
+
+unix-service-inline.md:
+  steps: inline

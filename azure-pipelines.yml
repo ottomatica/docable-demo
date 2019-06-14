@@ -10,7 +10,7 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
-- script: npm install -g ottomatica/docable#sudo
+- script: npm install -g ottomatica/docable
   displayName: 'Install Docable'
 
 - script: docable report unix-service/steps.yml
@@ -48,6 +48,14 @@ steps:
     git commit -m "Copying feedback to gh-pages"
     git push origin gh-pages
   displayName: 'Publish feedback Docable'
+
+# - script: cd engine && npm install && node lintmd.js ../unix-service
+#   displayName: 'Run learnk8s lintmd on unix-service example'
+#   continueOnError: true
+
+- script: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
+  displayName: 'Run Docable with custom renderer on unix-service example'
+  continueOnError: true
 
 - script: echo "https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html"
   displayName: 'Go to https://ottomatica.github.io/docable-demo/$(Build.SourceVersion)/unix-service.html to see results'

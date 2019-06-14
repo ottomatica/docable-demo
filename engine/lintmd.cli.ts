@@ -51,7 +51,7 @@ commander.on('command:render', async (paths: string[] | undefined) => {
   }
 
   let renderedHTML:any;
-  for(let it of ls(paths).filter(path => path.includes('.md'))) {
+  for(let it of ls(paths).filter(path => path.includes('inline.md'))) {
     renderedHTML = render(path.resolve(paths[0], it));
     await promises.writeFile(path.join(process.cwd(), path.basename(it)+'.html'), renderedHTML.props.dangerouslySetInnerHTML.__html)
   }
@@ -79,12 +79,16 @@ async function runDocable(paths: string[]) {
   switch (commander.renderer) {
     case 'learnk8s':
       console.log(`Using renderer ⚙️ : learnk8s`)
-      await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')}, {parser : (file: string) => render(path.resolve(paths[0], file)).props.dangerouslySetInnerHTML.__html} );  
+      await testreport("report", {stepfile: path.join(paths[0], 'steps-inline.yml')}, {parser : (file: string) => render(path.resolve(paths[0], file)).props.dangerouslySetInnerHTML.__html}, customCodeBlockSelector );  
       break;
 
     default:
       console.log(`Using renderer ⚙️ : marked`)
-      await testreport("report", {stepfile: path.join(paths[0], 'steps.yml')});
+      await testreport("report", {stepfile: path.join(paths[0], 'steps-inline.yml')});
       break;
   }
+}
+
+function customCodeBlockSelector($: any, N: number) {
+  return () => $(`div:nth-of-type(${N}) pre`);
 }
