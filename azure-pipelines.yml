@@ -31,9 +31,9 @@ steps:
 - script: npm install -g ottomatica/docable
   displayName: 'Install Docable'
 
-- script: docable report unix-service/steps.yml
-  displayName: 'Run Docable on unix-service example'
-  continueOnError: true
+# - script: docable report unix-service/steps.yml
+#   displayName: 'Run Docable on unix-service example'
+#   continueOnError: true
 
 - script: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
   displayName: 'Run Docable with custom renderer/css on unix-service example'
