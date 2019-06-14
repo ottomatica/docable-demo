@@ -1,0 +1,54 @@
+<!-- Inspired from https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6 --><html><head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+                    </style></head><body class="markdown-body"><h2 id="the-program">The program</h2>
+<p>Let&#x2019;s create a small server using PHP. I can see your eyebrows rising, but it works surprisingly well. We&#x2019;ll listen to UDP port 10000, and return any message received with a ROT13 transformation:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code><span class="php"><span class="hljs-meta">&lt;?php</span>
+$sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+socket_bind($sock, <span class="hljs-string">&apos;0.0.0.0&apos;</span>, <span class="hljs-number">10000</span>);
+<span class="hljs-keyword">for</span> (;;) {
+    socket_recvfrom($sock, $message, <span class="hljs-number">1024</span>, <span class="hljs-number">0</span>, $ip, $port);
+    $reply = str_rot13($message);
+    socket_sendto($sock, $reply, strlen($reply), <span class="hljs-number">0</span>, $ip, $port);
+}</span></code></pre><p>Let&#x2019;s start it:</p>
+<pre><code>$ php <span class="hljs-keyword">server</span>.php</code></pre><p>And test it in another terminal:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code>client$ echo <span class="hljs-string">&apos;Hello, world!&apos;</span> | nc -w <span class="hljs-number">1</span> -u <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span> <span class="hljs-number">10000</span>
+Uryyb, jbeyq!</code></pre><p>Cool, it works. Now we want this script to run at all times, be restarted in case of a failure (unexpected exit), and even survive server restarts. That&#x2019;s where systemd comes into play.</p>
+<p>Turning it into a service
+Let&#x2019;s create a file called <code>/etc/systemd/system/rot13.service</code>:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code>[Unit]
+<span class="hljs-attribute">Description</span>=ROT13 demo<span class="hljs-built_in"> service
+</span><span class="hljs-attribute">After</span>=network.target
+<span class="hljs-attribute">StartLimitIntervalSec</span>=0
+
+[Service]
+<span class="hljs-attribute">Type</span>=simple
+<span class="hljs-attribute">Restart</span>=always
+<span class="hljs-attribute">RestartSec</span>=1
+<span class="hljs-attribute">User</span>=root
+<span class="hljs-attribute">ExecStart</span>=/bin/sh -c <span class="hljs-string">&quot;php <span class="hljs-variable">$HOME</span>/server.php&quot;</span>
+
+[Install]
+<span class="hljs-attribute">WantedBy</span>=multi-user.target</code></pre><p>You&#x2019;ll need to:</p>
+<ul>
+<li>set your actual username after <code>User=</code></li>
+<li>set the proper path to your script in <code>ExecStart=</code></li>
+</ul>
+<p>That&#x2019;s it. We can now start the service:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code>$ systemctl <span class="hljs-literal">start</span> rot13</code></pre><p>And automatically get it to start on boot:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code>$ systemctl <span class="hljs-builtin-name">enable</span> rot13</code></pre><p>check status of the service to make sure it was started successfully:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code><span class="hljs-variable">$ </span>systemctl status rot13</code></pre><p>and if the service wasn&apos;t running, the check journalctl output:</p>
+<pre style="background-color: #BDFCC9;"><span>&#x2713; </span><code>$ journalctl -xe | tail <span class="hljs-number">-50</span> &gt;&amp;<span class="hljs-number">2</span></code></pre></body></html>
