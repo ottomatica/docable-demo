@@ -23,17 +23,17 @@ steps:
     git config --global user.name "azure-pipelines[bot]"
   displayName: 'Configure Git to use SSH deploy key'
 
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: docable_rsa
+  displayName: 'Copy ssh key to /tmp'
+
 - script: npm install -g ottomatica/docable
   displayName: 'Install Docable'
 
 - script: docable report unix-service/steps.yml
   displayName: 'Run Docable on unix-service example'
   continueOnError: true
-
-- task: DownloadSecureFile@1
-  inputs:
-    secureFile: docable_rsa
-  displayName: 'Copy ssh key to /tmp'
 
 - script: cd engine && npm install && node lintmd.js render ../unix-service --render learnk8s
   displayName: 'Run Docable with custom renderer/css on unix-service example'
@@ -45,7 +45,7 @@ steps:
     git checkout gh-pages
     mkdir -p latest
     mkdir -p $(Build.SourceVersion)
-    ls -al $(Build.Repository.LocalPath)
+    ls -l --full-time $(Build.Repository.LocalPath)/unix-service/docable_results/
     cp $(Build.Repository.LocalPath)/unix-service/docable_results/*.html latest/
     cp $(Build.Repository.LocalPath)/unix-service/docable_results/*.html $(Build.SourceVersion)/
     git add .
