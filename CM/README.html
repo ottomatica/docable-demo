@@ -1,0 +1,177 @@
+<html><head><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #BDFCC9 !important }
+                             .failing { background-color: LightCoral !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head><body class="markdown-body"><h2 id="configuration-management-workshop">Configuration Management Workshop</h2>
+<p>In this workshop, we&apos;ll cover the basics of setting up a simple configuration server, enabling ssh access, and using ansible to configure a simple web server.</p>
+<p><img src="./ansible-setup.png" alt="image"></p>
+<h2 id="workshop">Workshop</h2>
+<h3 id="before-you-get-started">Before you get started</h3>
+<ul>
+<li><a href="https://github.com/CSC-DevOps/profile#opunit">opunit and node.js should be installed</a>, and you pass the course profile check:<br> <code>opunit profile CSC-DevOps/profile:519.yml</code></li>
+<li>You can create a local VM with VirtualBox/Baker. If you can only get vagrant to work, then you will need to perform <a href="VM.md">some extra steps</a>.</li>
+<li>Clone this repo with: <code>git clone https://github.com/CSC-DevOps/CM</code> </li>
+<li>Make sure you have a shell open in the right directory: <code>cd CM</code>.</li>
+</ul>
+<h3 id="checking-progress-on-workshop">Checking progress on workshop</h3>
+<p>To check the configuration of the configuration and web server, we will use <code>opunit</code> to run checks on the virtual machines listed in the inventory file. We can run checks from the top-level directory as follows: </p>
+<pre><code>$ opunit verify -<span class="hljs-selector-tag">i</span> opunit_inventory.yml</code></pre><p>If you&apos;re using vagrant VMs, you&apos;ll have to use <code>-i vagrant_inventory.yml</code>, instead.</p>
+<h2 id="creating-your-servers">Creating your servers</h2>
+<h3 id="the-configuration-server">The configuration server</h3>
+<p>Let&apos;s create a configuration server. This server will be using a &quot;push-based model&quot;, where we will be sending configuration commands to other external servers. It also needs to be configured with ansible.</p>
+<p>Check virtualization.</p>
+<pre><code>$ VBoxManage <span class="hljs-built_in">list</span> vms</code></pre><p>Create the Virtual Machine.</p>
+<pre class="passing"><span>&#x2713; </span><code><span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">cd</span> servers/ansible-srv</span>
+<span class="hljs-meta">$</span><span class="bash"> cat baker.yml</span>
+<span class="hljs-meta">$</span><span class="bash"> baker bake</span></code></pre><p>You should see baker create the virtual machine.</p>
+<pre class="passing"><span>&#x2713; </span><code>&#x2714; Running apt-<span class="hljs-keyword">get</span> update <span class="hljs-keyword">on</span> VM
+&#x2714; Preparing ansible
+&#x2714; Installing ansible</code></pre><p>In a new terminal, or changing back to root directory: <code>cd ../..</code>: Verify that ansible was installed by running opunit:</p>
+<pre class="passing"><span>&#x2713; </span><code>opunit verify servers/ansible-srv -c test/ansible-srv<span class="hljs-selector-class">.yml</span> </code></pre><h3 id="the-web-server">The web server</h3>
+<p>Let&apos;s create another virtual machine for the web server. </p>
+<pre class="passing"><span>&#x2713; </span><code><span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">cd</span> servers/web-srv</span>
+<span class="hljs-meta">$</span><span class="bash"> cat baker.yml</span>
+<span class="hljs-meta">$</span><span class="bash"> baker bake</span></code></pre><p>You should see baker create the virtual machine. Verify <code>baker ssh</code> works, then <code>exit</code> back to your host machine.</p>
+<h2 id="creating-a-connection-between-your-servers">Creating a connection between your servers</h2>
+<p>You need a way to automatically connect to your server without having to manually authenicate each connection. We will create a pair of public/private keys for <a href="https://www.ssh.com/ssh/public-key-authentication#sec-Asymmetric-Cryptography-Algorithms">authentication through ssh</a>.</p>
+<p>From your host machine, create a new public/private key pair, running the following command, and hitting enter for the default prompts:</p>
+<pre class="passing"><span>&#x2713; </span><code>ssh-keygen -<span class="hljs-built_in">t</span> rsa -b <span class="hljs-number">4096</span> -C <span class="hljs-string">&quot;web-srv&quot;</span> -f web-srv -<span class="hljs-built_in">N</span> <span class="hljs-string">&quot;&quot;</span></code></pre><p><img src="./connection.png" alt="ssh connection"></p>
+<p>After generating the keys, you need to copy them onto the servers. The private key (<em>secret</em>, tell know one &#x1F910;), needs to be sent over to the configuration server. The public key (&#x1F310;), needs to be sent over to the web-server.</p>
+<h4 id="setting-up-the-private-key">Setting up the private key</h4>
+<p>One nice trick is to use a copy utility to copy a file into your copy/paste buffer:</p>
+<ul>
+<li>Mac: <code>pbcopy &lt; web-srv</code></li>
+<li>Windows: <code>clip &lt; web-srv</code></li>
+<li>Linux: <a href="https://superuser.com/a/288333/862331">Check out one of these options</a>.</li>
+</ul>
+<p>Let&apos;s go to the ansible-srv (<code>cd servers/ansible-srv</code>, then <code>baker ssh</code>).</p>
+<p>Using a file editor, paste and store your private key in a file:</p>
+<pre><code>ansible-srv $ vim ~<span class="hljs-regexp">/.ssh/</span>web-srv
+<span class="hljs-comment"># Make sure key is not readable by others.</span>
+ansible-srv $ chmod <span class="hljs-number">600</span> ~<span class="hljs-regexp">/.ssh/</span>web-srv
+<span class="hljs-comment"># We&apos;re done here, go back to host</span>
+ansible-srv $ <span class="hljs-keyword">exit</span></code></pre><p>Or use a simple command:</p>
+<pre class="passing"><span>&#x2713; </span><code>$ cat web-srv | ssh -i ~/Library/Baker/BakerForMac/baker_rsa -o StrictHostKeyChecking=no <span class="hljs-symbol">vagrant@</span><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.10</span> <span class="hljs-string">&quot;cat &gt; ~/.ssh/web-srv &amp;&amp; chmod 600 ~/.ssh/web-srv&quot;</span></code></pre><h4 id="setting-up-the-public-key">Setting up the public key</h4>
+<p>Copy the web-srv.pub file from your host.</p>
+<p>Go inside the web-srv.</p>
+<p>Using a file editor, add the public key to the list of authorized keys:</p>
+<pre><code>web-srv $ vim ~<span class="hljs-regexp">/.ssh/</span>authorized_keys`
+web-srv $ <span class="hljs-keyword">exit</span></code></pre><p>Take care not to delete other entries, which may affect your ability to use vagrant/Baker to ssh into the machine. You also do not need to change the permissions of the file.</p>
+<p>You may consider running this simple command to update the public key entry:</p>
+<pre class="passing"><span>&#x2713; </span><code>$ cat web-srv.pub | ssh -i ~/Library/Baker/BakerForMac/baker_rsa -o StrictHostKeyChecking=no <span class="hljs-symbol">vagrant@</span><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span> <span class="hljs-string">&quot;cat &gt;&gt; ~/.ssh/authorized_keys&quot;</span></code></pre><h4 id="testing-your-connectionerrors">Testing your connection/Errors</h4>
+<p>Inside the ansible-srv, test your connection between the servers:</p>
+<pre><code>ssh -i ~/.ssh/web-srv <span class="hljs-symbol">vagrant@</span><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span></code></pre><p>Note: You should also be able to make this same connection from your host machine, since you also have private key, locally.</p>
+<p>If you see an error or prompt for a password, you have a problem with your key setup. Double check have pasted in the content in correctly (where you in insert mode in vim before pasting?). </p>
+<p>If you see this warning, you need to remember to perform the <code>chmod 600</code> in order to fix the permissions of the private key file:</p>
+<pre><code><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@
+@</span>         WARNING: UNPROTECTED PRIVATE <span class="hljs-built_in">KEY</span> FILE!          <span class="hljs-comment">@
+@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span><span class="hljs-comment">@@</span>
+Permissions <span class="hljs-number">0664</span> <span class="hljs-keyword">for</span> &apos;/home/vagrant/.ssh/web-srv&apos; are too open.</code></pre><h2 id="performing-commands-over-ssh">Performing commands over ssh</h2>
+<p>Once you have established a ssh connection between two servers, you have achieved an important milestone in configuration management.</p>
+<p>You can now perform ad-hoc commands and even execute scripts on machines without having to manually log-in.</p>
+<p>For example, when you run this command.</p>
+<pre class="passing"><span>&#x2713; </span><code>ssh -i ~/.ssh/web-srv -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/<span class="hljs-literal">null</span> <span class="hljs-symbol">vagrant@</span><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span> ls /</code></pre><p>You can see the directory of the web-srv.</p>
+<p>Practice: From your ansible-srv, create a file by executing the command below on the remote server. Verify it exists.</p>
+<pre class="passing"><span>&#x2713; </span><code><span class="hljs-selector-tag">touch</span> <span class="hljs-selector-tag">ssh_test</span><span class="hljs-selector-class">.txt</span></code></pre><p>By this point, you should be able to pass the ssh setup checks in opunit: <code>opunit verify -i opunit_inventory.yml</code>.</p>
+<h2 id="ansible">Ansible</h2>
+<p>While being able to run ad-hoc commands and scripts provides a useful capability, there are several constraints that make this impractical. </p>
+<p>Writing bash scripts can be error-prone. Most commands are not idempotent, meaning they may cause errors or unexpected behaviors if run multiple times on the same servers. Finally, configuration of servers is an inherently noisy problem, due to network issues and random service and hardware failures. This means, you often need to resume a configuration operation after experiencing partial failure.</p>
+<p>Ansible is a tool for performing configuration changes on multiple machines. Ansible uses a push-based model for configuration management, performing idempotent commands over ssh, without requiring any agent running. The implementation is rather straightforward: <em>Ansible commands are translated into python snippets, and then copied over to the target machine, and executed. This requires that python is installed on the target machine</em>.</p>
+<h2 id="inventory">Inventory</h2>
+<p>An inventory file allows ansible to define, group, and coordinate configuration management of multiple machines. At the most basic level, it basically lists the names of an asset and details about how to connect to it.</p>
+<p>Inside the ansible-srv, edit the <code>inventory</code> file to include the ip address, user, and path to the private key:</p>
+<pre class="passing"><span>&#x2713; </span><code>[web]
+192.168.33.100 <span class="hljs-attribute">ansible_ssh_user</span>=vagrant <span class="hljs-attribute">ansible_ssh_private_key_file</span>=~/.ssh/web-srv 
+[web:vars]
+<span class="hljs-attribute">ansible_ssh_common_args</span>=<span class="hljs-string">&apos;-o StrictHostKeyChecking=no&apos;</span></code></pre><p>Now, run the ping test to verify ansible is able to talk to the web-srv!</p>
+<pre class="passing"><span>&#x2713; </span><code>ansible all -m<span class="hljs-built_in"> ping </span>-i inventory</code></pre><p>Note: this will fail because python is not available on the target machine. However, python3 is! We can adjust the connection to account for this. Inside the inventory, we can add a new variable for all entries in our <code>web</code> group:</p>
+<pre><code><span class="hljs-section">[web:vars]</span>
+<span class="hljs-attr">ansible_python_interpreter</span>=/usr/bin/python3</code></pre><p>Now, we should see a successful connection!</p>
+<pre class="passing"><span>&#x2713; </span><code><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span> | <span class="hljs-function"><span class="hljs-params">SUCCESS</span> =&gt;</span> {
+    <span class="hljs-string">&quot;changed&quot;</span>: <span class="hljs-literal">false</span>,
+    <span class="hljs-string">&quot;ping&quot;</span>: <span class="hljs-string">&quot;pong&quot;</span>
+}</code></pre><h2 id="ansible-commands">Ansible commands</h2>
+<p>We can test our ability to use ansible for a simple configuration management task.</p>
+<h4 id="installing-nginx">Installing nginx</h4>
+<p>Let&apos;s install a web server, called nginx (say like engine-X), on the web-srv VM. The web server will automatically start as a service.</p>
+<pre class="passing"><span>&#x2713; </span><code>ansible all -<span class="hljs-selector-tag">b</span> -m apt -<span class="hljs-selector-tag">i</span> inventory -<span class="hljs-selector-tag">a</span> <span class="hljs-string">&apos;pkg=nginx state=installed update_cache=true&apos;</span></code></pre><p>Open a browser and enter in your node&apos;s ip address, e.g. <a href="http://192.168.33.100">http://192.168.33.100</a></p>
+<h4 id="completing-workshop-checks">Completing workshop checks</h4>
+<p>You should be able to verify all checks pass:</p>
+<pre><code>opunit verify -<span class="hljs-selector-tag">i</span> opunit_inventory.yml</code></pre><p>Great work!</p>
+<h2 id="extra-fun">Extra fun</h2>
+<p>Can you provision a remote VM (from digitalocean/etc.) and then add its details to the inventory? Can you run your nginx command on it too?</p>
+<h2 id="next-steps">Next steps</h2>
+<p>Run ansible commands can be useful for exploration and debugging. However, we want to be able to organize these commands into reusable configuration scripts.</p>
+<p>Next workshop, we will learn about creating and running ansible playbooks.</p>
+<h2>docable verification results</h2><div class="verify passing">$ opunit verify -i opunit_inventory.yml
+
+===================================
+Connector: baker
+Info: {&quot;name&quot;:&quot;ansible-srv&quot;,&quot;target&quot;:&quot;servers/ansible-srv&quot;,&quot;criteria_path&quot;:&quot;test/ansible-srv.yml&quot;}
+===================================
+
+Checks
+
+	Essential development tools
+
+	version check
+	    &#x2714;   ansible --version: 2.8.1 &gt; ^2.7.x =&gt; true 
+
+	ssh keys
+
+	contains check
+		The private key for the web server should be stored on ansible server.
+	    &#x2714;   [...web-srv]  contains [-----BEGIN] status: true message: NA
+
+	Inventory setup
+
+	contains check
+		The web-srv ip address should be specified in the ansible inventory file
+	    &#x2714;   [...inventory]  contains [192.168.33.100] status: true message: NA
+
+Summary
+
+	100.0% of all checks passed.
+	3 passed &#xB7; 0 failed
+
+===================================
+Connector: baker
+Info: {&quot;name&quot;:&quot;web-srv&quot;,&quot;target&quot;:&quot;servers/web-srv&quot;,&quot;criteria_path&quot;:&quot;test/web-srv.yml&quot;}
+===================================
+
+Checks
+
+	ssh setup
+
+	contains check
+		The public key for the web server should be authorized so ansible can connect to it.
+	    &#x2714;   [...authorized_keys]  contains [web-srv] status: true message: NA
+	reachable check
+	    &#x2714;   [~/ssh_test.txt] status: true
+
+	nginx test
+
+	availability check
+	    &#x2714;   [web-srv] http://192.168.33.100:80/ expected: 200 actual: 200
+
+Summary
+
+	100.0% of all checks passed.
+	3 passed &#xB7; 0 failed
+</div></body></html>
