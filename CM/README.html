@@ -43,7 +43,29 @@
 <pre class="passing"><span>&#x2713; </span><code>&#x2714; Running apt-<span class="hljs-keyword">get</span> update <span class="hljs-keyword">on</span> VM
 &#x2714; Preparing ansible
 &#x2714; Installing ansible</code></pre><p>In a new terminal, or changing back to root directory: <code>cd ../..</code>: Verify that ansible was installed by running opunit:</p>
-<pre class="passing"><span>&#x2713; </span><code>opunit verify servers/ansible-srv -c test/ansible-srv<span class="hljs-selector-class">.yml</span> </code></pre><h3 id="the-web-server">The web server</h3>
+<pre class="failing"><span>&#x10102; </span><code>opunit verify servers/ansible-srv -c test/ansible-srv<span class="hljs-selector-class">.yml</span> </code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 1</span><span> command output:<br> Checks
+
+	Essential development tools
+
+	version check
+	    &#x2714;   ansible --version: 2.8.1 &gt; ^2.7.x =&gt; true 
+
+	ssh keys
+
+	contains check
+		The private key for the web server should be stored on ansible server.
+	    &#x2716;   [...web-srv]  contains [-----BEGIN] status: false message: Error: file doesn&apos;t exist
+
+	Inventory setup
+
+	contains check
+		The web-srv ip address should be specified in the ansible inventory file
+	    &#x2716;   [...inventory]  contains [192.168.33.100] status: false message: Error: file doesn&apos;t exist
+
+Summary
+
+	33.3% of all checks passed.
+	1 passed &#xB7; 2 failed</span></pre><h3 id="the-web-server">The web server</h3>
 <p>Let&apos;s create another virtual machine for the web server. </p>
 <pre class="passing"><span>&#x2713; </span><code><span class="hljs-meta">$</span><span class="bash"> <span class="hljs-built_in">cd</span> servers/web-srv</span>
 <span class="hljs-meta">$</span><span class="bash"> cat baker.yml</span>
@@ -100,10 +122,8 @@ Permissions <span class="hljs-number">0664</span> <span class="hljs-keyword">for
 192.168.33.100 <span class="hljs-attribute">ansible_ssh_user</span>=vagrant <span class="hljs-attribute">ansible_ssh_private_key_file</span>=~/.ssh/web-srv 
 [web:vars]
 <span class="hljs-attribute">ansible_ssh_common_args</span>=<span class="hljs-string">&apos;-o StrictHostKeyChecking=no&apos;</span></code></pre><p>Now, run the ping test to verify ansible is able to talk to the web-srv!</p>
-<pre class="passing"><span>&#x2713; </span><code>ansible all -m<span class="hljs-built_in"> ping </span>-i inventory</code></pre><p>Note: this will fail because python is not available on the target machine. However, python3 is! We can adjust the connection to account for this. Inside the inventory, we can add a new variable for all entries in our <code>web</code> group:</p>
-<pre><code><span class="hljs-section">[web:vars]</span>
-<span class="hljs-attr">ansible_python_interpreter</span>=/usr/bin/python3</code></pre><p>Now, we should see a successful connection!</p>
-<pre class="passing"><span>&#x2713; </span><code><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span> | <span class="hljs-function"><span class="hljs-params">SUCCESS</span> =&gt;</span> {
+<pre class="passing"><span>&#x2713; </span><code>ansible all -m<span class="hljs-built_in"> ping </span>-i inventory</code></pre><p>We should see a successful connection!</p>
+<pre><code><span class="hljs-number">192.168</span><span class="hljs-number">.33</span><span class="hljs-number">.100</span> | <span class="hljs-function"><span class="hljs-params">SUCCESS</span> =&gt;</span> {
     <span class="hljs-string">&quot;changed&quot;</span>: <span class="hljs-literal">false</span>,
     <span class="hljs-string">&quot;ping&quot;</span>: <span class="hljs-string">&quot;pong&quot;</span>
 }</code></pre><h2 id="ansible-commands">Ansible commands</h2>
@@ -119,7 +139,11 @@ Permissions <span class="hljs-number">0664</span> <span class="hljs-keyword">for
 <h2 id="next-steps">Next steps</h2>
 <p>Run ansible commands can be useful for exploration and debugging. However, we want to be able to organize these commands into reusable configuration scripts.</p>
 <p>Next workshop, we will learn about creating and running ansible playbooks.</p>
-<h2>docable verification results</h2><div class="verify passing">$ opunit verify -i opunit_inventory.yml
+<h2 id="common-errors">Common errors</h2>
+<p>Note, on older versions of ansible, you may fail to ping an item in your inventory if the server does not have python2. One workaround is to specify the python version explicitly. In newer versions of ansible, this will automatically be discovered by ansible. </p>
+<p>You can adjust the connection to account for this. Inside the inventory, add a new variable for all entries in <code>web</code> group:</p>
+<pre><code><span class="hljs-section">[web:vars]</span>
+<span class="hljs-attr">ansible_python_interpreter</span>=/usr/bin/python3</code></pre><h2>docable verification results</h2><div class="verify passing">$ opunit verify -i opunit_inventory.yml
 
 ===================================
 Connector: baker
