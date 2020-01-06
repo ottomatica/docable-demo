@@ -1,0 +1,376 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="This tutorial will show you how to set up a free TLS/SSL certificate from Let&#x2019;s Encrypt on a Ubuntu 16.04 server running Apache as web server. TLS certificates are used within web servers to encrypt the traffic between server and client, providing ext">
+<meta name="keywords" content="Let&apos;s Encrypt Security LAMP Stack Apache">
+
+<meta name="og:title" content="How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="This tutorial will show you how to set up a free TLS/SSL certificate from Let&#x2019;s Encrypt on a Ubuntu 16.04 server running Apache as web server. TLS certificates are used within web servers to encrypt the traffic between server and client, providing ext">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Let&apos;s_Encrypt_apache_tw_mostov.jpg?1468952215">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="This tutorial will show you how to set up a free TLS/SSL certificate from Let&#x2019;s Encrypt on a Ubuntu 16.04 server running Apache as web server. TLS certificates are used within web servers to encrypt the traffic between server and client, providing ext">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Let&apos;s_Encrypt_apache_tw_mostov.jpg?1468952215">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="VE8CwgkMnj6TcJeVakhPdcJUA++U5vbcGQ5x61NsYeHhtDPqxrXq3ZeOPON+y4HzAcr+3lEIKo0+oOhnzrBDWw==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="1930" data-js="tutorial" data-upvote="null" data-flagged>
+    
+
+    <h1 class="content-title Tutorial-header">How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">April 21, 2016</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">1.2m</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/security?type=tutorials">Security</a> <a class="tag" href="/community/tags/apache?type=tutorials">Apache</a> <a class="tag" href="/community/tags/let-s-encrypt?type=tutorials">Let&apos;s Encrypt</a> <a class="tag" href="/community/tags/lamp-stack?type=tutorials">LAMP Stack</a>
+      <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/erikaheidi">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/4c3251574011991e1d7c79990a16a45759a2ecdd.jpg?1556274339" alt="4c3251574011991e1d7c79990a16a45759a2ecdd"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/erikaheidi">Erika Heidi</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>This tutorial will show you how to set up a TLS/SSL certificate from <a href="https://letsencrypt.org/">Let&#x2019;s Encrypt</a> on an Ubuntu 16.04 server running Apache as a web server.</p>
+
+<p>SSL certificates are used within web servers to encrypt the traffic between the server and client, providing extra security for users accessing your application. Let&#x2019;s Encrypt provides an easy way to obtain and install trusted certificates for free.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>In order to complete this guide, you will need:</p>
+
+<ul>
+<li>An Ubuntu 16.04 server with a non-root sudo-enabled user, which you can set up by following our <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup</a> guide</li>
+<li>The Apache web server installed with <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04">one or more domain names</a> properly configured through Virtual Hosts that specify <code>ServerName</code>.</li>
+</ul>
+
+<p>When you are ready to move on, log into your server using your sudo-enabled account.</p>
+
+<h2 id="step-1-&#x2014;-install-the-let-39-s-encrypt-client">Step 1 &#x2014; Install the Let&#x2019;s Encrypt Client</h2>
+
+<p>Let&#x2019;s Encrypt certificates are fetched via client software running on your server. The official client is called Certbot, and its developers maintain their own Ubuntu software repository with up-to-date versions. Because Certbot is in such active development it&#x2019;s worth using this repository to install a newer version than Ubuntu provides by default.</p>
+
+<p>First, add the repository:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo add-apt-repository ppa:certbot/certbot
+</li></ul></code></pre>
+<p>You&#x2019;ll need to press <code>ENTER</code> to accept. Afterwards, update the package list to pick up the new repository&#x2019;s package information:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get update
+</li></ul></code></pre>
+<p>And finally, install Certbot from the new repository with <code>apt-get</code>:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install python-certbot-apache
+</li></ul></code></pre>
+<p>The <code>certbot</code> Let&#x2019;s Encrypt client is now ready to use.</p>
+
+<h2 id="step-2-&#x2014;-set-up-the-ssl-certificate">Step 2 &#x2014; Set Up the SSL Certificate</h2>
+
+<p>Generating the SSL certificate for Apache using Certbot is quite straightforward. The client will automatically obtain and install a new SSL certificate that is valid for the domains provided as parameters.</p>
+
+<p>To execute the interactive installation and obtain a certificate that covers only a single domain, run the <code>certbot</code> command like so, where <span class="highlight">example.com</span> is your domain:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo certbot --apache -d <span class="highlight">example.com</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator apache, Installer apache
+Starting new HTTPS connection (1): acme-v02.api.letsencrypt.org
+Obtaining a new certificate
+Performing the following challenges:
+http-01 challenge for example.com
+Enabled Apache rewrite module
+Waiting for verification...
+Cleaning up challenges
+Failed authorization procedure. example.com (http-01): urn:ietf:params:acme:error:unauthorized :: The client lacks sufficient authorization :: Invalid response from http://example.com/.well-known/acme-challenge/WLqbFETpys2MWYOAhmaZhbUYzMB6SI8-br9jQevTT30 [2606:2800:220:1:248:1893:25c8:1946]: &quot;\n\n\n    <title>Example Domain</title>\n\n    <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;" < span></span><span> exit code: 1</span><span> command output:<br> IMPORTANT NOTES:
+ - The following errors were reported by the server:
+
+   Domain: example.com
+   Type:   unauthorized
+   Detail: Invalid response from
+   http://example.com/.well-known/acme-challenge/WLqbFETpys2MWYOAhmaZhbUYzMB6SI8-br9jQevTT30
+   [2606:2800:220:1:248:1893:25c8:1946]: &quot;\n\n\n    <title>Example Domain</title>\n\n
+   <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;" to fix these errors, please make sure that your domain name was entered correctly and the dns a aaaa record(s) for contain(s) right ip address.< span></span></pre>
+<p>If you want to install a single certificate that is valid for multiple domains or subdomains, you can pass them as additional parameters to the command. The first domain name in the list of parameters will be the <strong>base</strong> domain used by Let&#x2019;s Encrypt to create the certificate, and for that reason we recommend that you pass the bare top-level domain name as first in the list, followed by any additional subdomains or aliases:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo certbot --apache -d <span class="highlight">example.com</span> -d <span class="highlight">www.example.com</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator apache, Installer apache
+Starting new HTTPS connection (1): acme-v02.api.letsencrypt.org
+Obtaining a new certificate
+Performing the following challenges:
+http-01 challenge for example.com
+http-01 challenge for www.example.com
+Enabled Apache rewrite module
+Waiting for verification...
+Cleaning up challenges
+Failed authorization procedure. example.com (http-01): urn:ietf:params:acme:error:unauthorized :: The client lacks sufficient authorization :: Invalid response from http://example.com/.well-known/acme-challenge/XOZepKvWY8mSC5BpmbRN3GoFNjyKep9J_Wq9mXH2rkU [2606:2800:220:1:248:1893:25c8:1946]: &quot;\n\n\n    <title>Example Domain</title>\n\n    <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;," www.example.com (http-01): urn:ietf:params:acme:error:unauthorized :: the client lacks sufficient authorization invalid response from http: .well-known acme-challenge ks4c42c198faxdcrmhppxtbxpuqzcbxk4auxfhlgcqu [2606:2800:220:1:248:1893:25c8:1946]: "<!doctype html>\n\n\n    <title>Example Domain</title>\n\n    <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;" < span></span><span> exit code: 1</span><span> command output:<br> IMPORTANT NOTES:
+ - The following errors were reported by the server:
+
+   Domain: example.com
+   Type:   unauthorized
+   Detail: Invalid response from
+   http://example.com/.well-known/acme-challenge/XOZepKvWY8mSC5BpmbRN3GoFNjyKep9J_Wq9mXH2rkU
+   [2606:2800:220:1:248:1893:25c8:1946]: &quot;\n\n\n    <title>Example Domain</title>\n\n
+   <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;" domain: www.example.com type: unauthorized detail: invalid response from http: .well-known acme-challenge ks4c42c198faxdcrmhppxtbxpuqzcbxk4auxfhlgcqu [2606:2800:220:1:248:1893:25c8:1946]: "<!doctype html>\n\n\n    <title>Example Domain</title>\n\n
+   <meta charset="\&quot;utf-8\&quot;">\n    <meta http-equiv="\&quot;Content-type&quot;" to fix these errors, please make sure that your domain name was entered correctly and the dns a aaaa record(s) for contain(s) right ip address.< span></span></pre>
+<p>For this example, the <strong>base</strong> domain will be <code>example.com</code>.</p>
+
+<p>If you have multiple virtual hosts, you should run <code>certbot</code> once for each to generate a new certificate for each. You can distribute multiple domains and subdomains across your virtual hosts in any way.</p>
+
+<p>After the dependencies are installed, you will be presented with a step-by-step guide to customize your certificate options. You will be asked to provide an email address for lost key recovery and notices, and you will be able to choose between enabling both <code>http</code> and <code>https</code> access or forcing all requests to redirect to <code>https</code>. It is usually safest to require <code>https</code>, unless you have a specific need for unencrypted <code>http</code> traffic.</p>
+
+<p>When the installation is finished, you should be able to find the generated certificate files at <code>/etc/letsencrypt/live</code>. You can verify the status of your SSL certificate with the following link (don&#x2019;t forget to replace <span class="highlight">example.com</span> with your <strong>base</strong> domain):</p>
+<pre class="code-pre "><code langs>https://www.ssllabs.com/ssltest/analyze.html?d=<span class="highlight">example.com</span>&amp;latest
+</code></pre>
+<p>You should now be able to access your website using a <code>https</code> prefix.</p>
+
+<h2 id="step-3-&#x2014;-verifying-certbot-auto-renewal">Step 3 &#x2014; Verifying Certbot Auto-Renewal</h2>
+
+<p>Let&#x2019;s Encrypt certificates only last for 90 days. However, the certbot package we installed takes care of this for us by running <code>certbot renew</code> twice a day via a systemd timer. On non-systemd distributions this functionality is provided by a cron script placed in <code>/etc/cron.d</code>. The task runs twice daily and will renew any certificate that&#x2019;s within thirty days of expiration.</p>
+
+<p>To test the renewal process, you can do a dry run with <code>certbot</code>:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo certbot renew --dry-run
+</li></ul></code></pre>
+<p>If you see no errors, you&#x2019;re all set. When necessary, Certbot will renew your certificates and reload Apache to pick up the changes. If the automated renewal process ever fails, Let&#x2019;s Encrypt will send a message to the email you specified, warning you when your certificate is about to expire.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this guide, we saw how to install a free SSL certificate from Let&#x2019;s Encrypt in order to secure a website hosted with Apache. We recommend that you check the official <a href="https://letsencrypt.org/blog/">Let&#x2019;s Encrypt blog</a> for important updates from time to time, and read <a href="https://certbot.eff.org/docs/">the Certbot documentation</a> for more details about the Certbot client.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/erikaheidi">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/4c3251574011991e1d7c79990a16a45759a2ecdd.jpg?1556274339" alt="4c3251574011991e1d7c79990a16a45759a2ecdd"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/erikaheidi">Erika Heidi</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors one">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+
+
+        <li class="collaborators-byline-data">
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="1930" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04/flag" data-flaggable-id="1930">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04?utm_content=how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04?utm_content=how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Secure Apache with Let&apos;s Encrypt on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04?utm_content=how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">134</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+
+      <script>
+    $(function() {
+      var dropDownOptions = {};
+      
+
+      VTGNavigationDropdown($('[data-versioned-tutorial-group-navigation]'), dropDownOptions);
+      createTutorialRequest({
+        $tutorialRequestLinks: $("[data-tutorial-request]"),
+        tutorialRequestStatusSelector: "[data-tutorial-request-status-indicator]",
+        tutorialRequestUrl: "/community/api/tutorial_requests",
+      });
+    });
+  </script>
+  <script>
+    $(function() {
+      window.initHelpfulnessActions(1930);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Secure Apache with Let's Encrypt on Ubuntu 16.04","headline":"How To Secure Apache with Let's Encrypt on Ubuntu 16.04","alternativeHeadline":"How To Secure Apache with Let's Encrypt on Ubuntu 16.04","description":"This tutorial will show you how to set up a free TLS/SSL certificate from Let’s Encrypt on a Ubuntu 16.04 server running Apache as web server. TLS certificates are used within web servers to encrypt the traffic between server and client, providing extra security for users accessing your application.","keywords":"Security,Apache,Let's Encrypt,LAMP Stack","url":"https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04"},"dateModified":"2019-03-21T16:07:50Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Erika Heidi","@id":"https://www.digitalocean.com/community/users/erikaheidi"}],"datePublished":"2016-04-21T13:27:33Z","image":{"@type":"ImageObject","url":"https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Let's_Encrypt_apache_tw_mostov.jpg?1468952215","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"319"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"104"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>

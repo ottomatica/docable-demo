@@ -1,0 +1,466 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="In this tutorial, you will set up Apache as a reverse proxy using the mod_proxy extension to redirect incoming connections to underlying application server(s) running on the same network. There are instructions on setting up a simple web app using the">
+<meta name="keywords" content="Load Balancing Apache">
+
+<meta name="og:title" content="How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="In this tutorial, you will set up Apache as a reverse proxy using the mod_proxy extension to redirect incoming connections to underlying application server(s) running on the same network. There are instructions on setting up a simple web app using the">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="In this tutorial, you will set up Apache as a reverse proxy using the mod_proxy extension to redirect incoming connections to underlying application server(s) running on the same network. There are instructions on setting up a simple web app using the">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="56x7bHIzh2BpwKtlF5QhU+JHh/0IWDwg/OH7zUyQ+ZcztY5Y2Nsew0QdeMkO+XNnyL2UMIpreGftznnaTxjMFg==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2236" data-js="tutorial" data-upvote="null" data-flagged>
+        <h1 class="content-title Tutorial-header">How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">February  1, 2017</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">266.9k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/apache?type=tutorials">Apache</a> <a class="tag" href="/community/tags/load-balancing?type=tutorials">Load Balancing</a>
+      <a class="tag" href="/community/tags/ubuntu?type=tutorials">Ubuntu</a> <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/mati">
+            <img alt="mati" class="avatar avatar-large" src="../steps/https:/secure.gravatar.com/avatar/3dbc43ecbf78845181c103d5d0f251b7?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/mati">Mateusz Papiernik</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>A <em>reverse proxy</em> is a type of proxy server that takes HTTP(S) requests and transparently distributes them to one or more backend servers. Reverse proxies are useful because many modern web applications process incoming HTTP requests using backend application servers which aren&#x2019;t meant to be accessed by users directly and often only support rudimentary HTTP features.</p>
+
+<p>You can use a reverse proxy to prevent these underlying application servers from being directly accessed. They can also be used to distribute the load from incoming requests to several different application servers, increasing performance at scale and providing fail-safeness. They can fill in the gaps with features the application servers don&#x2019;t offer, such as caching, compression, or SSL encryption too.</p>
+
+<p>In this tutorial, you&#x2019;ll set up Apache as a basic reverse proxy using the <code>mod_proxy</code> extension to redirect incoming connections to one or several backend servers running on the same network. This tutorial uses a simple backend written with the with <a href="http://flask.pocoo.org/">Flask web framework</a>, but you can use any backend server you prefer.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>To follow this tutorial, you will need:</p>
+
+<ul>
+<li>One Ubuntu 16.04 server set up with <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">this initial server setup tutorial</a>, including a sudo non-root user and a firewall.</li>
+<li>Apache 2 installed on your server by following Step 1 of <a href="https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-16-04">How To Install Linux, Apache, MySQL, PHP (LAMP) stack on Ubuntu 16.04</a>.</li>
+</ul>
+
+<h2 id="step-1-&#x2014;-enabling-necessary-apache-modules">Step 1 &#x2014; Enabling Necessary Apache Modules</h2>
+
+<p>Apache has many modules bundled with it that are available but not enabled in a fresh installation. First, we&#x2019;ll need to enable the ones we&#x2019;ll use in this tutorial.</p>
+
+<p>The modules we need are <code>mod_proxy</code> itself and several of its add-on modules, which extend its functionality to support different network protocols. Specifically, we will use:</p>
+
+<ul>
+<li><code>mod_proxy</code>, the main proxy module Apache module for redirecting connections; it allows Apache to act as a gateway to the underlying application servers.</li>
+<li><code>mod_proxy_http</code>, which adds support for proxying HTTP connections.</li>
+<li><code>mod_proxy_balancer</code> and <code>mod_lbmethod_byrequests</code>, which add load balancing features for multiple backend servers.</li>
+</ul>
+
+<p>To enable these four modules, execute the following commands in succession.</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo a2enmod proxy
+</li><li class="line" prefix="$">sudo a2enmod proxy_http
+</li><li class="line" prefix="$">sudo a2enmod proxy_balancer
+</li><li class="line" prefix="$">sudo a2enmod lbmethod_byrequests
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: sudo: a2enmod: command not found
+sudo: a2enmod: command not found
+sudo: a2enmod: command not found
+sudo: a2enmod: command not found
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>To put these changes into effect, restart Apache.</p>
+<pre class="code-pre command failing passing"><span>&#x2713; </span><span>&#x2713; </span><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo systemctl restart apache2
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Failed to restart apache2.service: Unit apache2.service not found.
+</span><span> exit code: 5</span><span> command output:<br> </span></pre>
+<p>Apache is now ready to act as a reverse proxy for HTTP requests. In the next (optional) step, we will create two very basic backend servers. These will help us verify if the configuration works properly, but if you already have your own backend application(s), you can skip to Step 3.</p>
+
+<h2 id="step-2-&#x2014;-creating-backend-test-servers">Step 2 &#x2014; Creating Backend Test Servers</h2>
+
+<p>Running some simple backend servers is an easy way to test if your Apache configuration is working properly. Here, we&#x2019;ll make two test servers which respond to HTTP requests with printing a line of text. One server will say <strong>Hello world!</strong> and the other will say <strong>Howdy world!</strong>.</p>
+
+<p><span class="note"><strong>Note:</strong> In non-test setups, backend servers usually all return the same kind of content. However, for this test in particular, having the two servers return different messages makes it easy to check that the load balancing mechanism uses both.<br></span></p>
+
+<p>Flask is a Python microframework for building web applications. We&#x2019;re using Flask to create the test servers because a basic app requires just a few lines of code. You don&#x2019;t need to know Python to set these up, but if you&#x2019;d like to learn, you can look at <a href="https://www.digitalocean.com/community/tags/python?type=tutorials">these Python tutorials</a>.</p>
+
+<p>Update the packages list first.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get update
+</li></ul></code></pre>
+<p>Then install Pip, the recommended Python package manager.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get -y install python3-pip
+</li></ul></code></pre>
+<p>Use Pip to install Flask.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo pip3 install flask
+</li></ul></code></pre>
+<p>Now that all the required components are installed, start by creating a new file that will contain the code for the first backend server in the home directory of the current user.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano ~/backend1.py
+</li></ul></code></pre>
+<p>Copy the following code into the file, then save and close it.</p>
+<div class="code-label " title="~/backend1.py">~/backend1.py</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>from flask import Flask
+app = Flask(__name__)
+
+@app.route(&apos;/&apos;)
+def home():
+    return &apos;Hello world!&apos;
+</code></pre>
+<p>The first two lines initialize the Flask framework. There is one function, <code>home()</code>, which returns a line of text (<code>Hello world!</code>). The <code>@app.route(&apos;/&apos;)</code> line above the <code>home()</code> function definition tells Flask to use <code>home()</code>&#x2019;s return value as a response to HTTP requests directed at the <code>/</code> root URL of the application.</p>
+
+<p>The second backend server is exactly the same as the first, aside from returning to a different line of text, so start by duplicating the first file.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cp ~/backend1.py ~/backend2.py
+</li></ul></code></pre>
+<p>Open the newly copied file.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano ~/backend2.py
+</li></ul></code></pre>
+<p>Change the message to be returned from <strong>Hello world!</strong> to <strong>Howdy world!</strong>, then save and close the file.</p>
+<div class="code-label " title="~/backend2.py">~/backend2.py</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>from flask import Flask
+app = Flask(__name__)
+
+<a href="https://www.digitalocean.com/community/users/app-route" class="username-tag">@app.route</a>(&apos;/&apos;)
+def home():
+    return &apos;<span class="highlight">Howdy world!</span>&apos;
+</code></pre>
+<p>Use the following command to start the first background server on port <code>8080</code>. This also redirects Flask&#x2019;s output to <code>/dev/null</code> because it would cloud the console output further on.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">FLASK_APP=~/backend1.py flask run --port=8080 &gt;/dev/null 2&gt;&amp;1 &amp;
+</li></ul></code></pre>
+<p>Here, we are preceding the <code>flask</code> command by setting <code>FLASK_APP</code> environment variable in the same line. Environment variables are a convenient way to pass information into processes that are spawned from the shell. You can learn more about environment variables in <a href="https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps">How To Read and Set Environmental and Shell Variables on a Linux VPS</a>.</p>
+
+<p>In this case, using an environment variable makes sure the setting applies only to the command being run and will not stay available afterwards, as we will be passing another filename the same way to tell <code>flask</code> command to start the second server</p>
+
+<p>Similarly, use this command to start the second server on port <code>8081</code>. Note the different value for the <code>FLASK_APP</code> environment variable.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">FLASK_APP=~/backend2.py flask run --port=8081 &gt;/dev/null 2&gt;&amp;1 &amp;
+</li></ul></code></pre>
+<p>You can test that the two servers are running using <code>curl</code>. Test the first server:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl http://127.0.0.1:8080/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to 127.0.0.1 port 8080: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>This will output <strong>Hello world!</strong> in the terminal. Test the second server:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl http://127.0.0.1:8081/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to 127.0.0.1 port 8081: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>This will output <strong>Howdy world!</strong> instead. </p>
+
+<p><span class="note"><strong>Note</strong>: To close both test servers after you no longer need them, like when you finish this tutorial, you can simply execute <code>killall flask</code>.<br></span></p>
+
+<p>In the next step, we&#x2019;ll modify Apache&#x2019;s configuration file to enable its use as a reverse proxy.</p>
+
+<h2 id="step-3-&#x2014;-modifying-the-default-configuration-to-enable-reverse-proxy">Step 3 &#x2014; Modifying the Default Configuration to Enable Reverse Proxy</h2>
+
+<p>In this section, we will set up the default Apache virtual host to serve as a reverse proxy for single backend server or an array of load balanced backend servers.</p>
+
+<span class="note"><p></p>
+
+<p><strong>Note</strong>: In this tutorial, we&#x2019;re applying the configuration at the virtual host level. On a default installation of Apache, there is only a single, default virtual host enabled. However, you can use all those configuration fragments in other virtual hosts as well. To learn more about virtual hosts in Apache, you can read this <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04">How To Set Up Apache Virtual Hosts on Ubuntu 16.04</a> tutorial.</p>
+
+<p>If your Apache server acts as both HTTP and HTTPS server, your reverse proxy configuration must be placed in both the HTTP and HTTPS virtual hosts. To learn more about SSL with Apache, you can read this <a href="https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-16-04">How To Create a Self-Signed SSL Certificate for Apache in Ubuntu 16.04</a> tutorial.</p>
+
+<p></p></span>
+
+<p>Open the default Apache configuration file using <code>nano</code> or your favorite text editor.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nano /etc/apache2/sites-available/000-default.conf
+</li></ul></code></pre>
+<p>Inside that file, you will find the <code>&lt;VirtualHost *:80&gt;</code> block starting on the first line. The first example below explains how to configure this block to reverse proxy for a single backend server, and the second sets up a load balanced reverse proxy for multiple backend servers.</p>
+
+<h3 id="example-1-&#x2014;-reverse-proxying-a-single-backend-server">Example 1 &#x2014; Reverse Proxying a Single Backend Server</h3>
+
+<p>Replace all the contents within <code>VirtualHost</code> block with the following, so your configuration file looks like this:</p>
+<div class="code-label " title="/etc/apache2/sites-available/000-default.conf">/etc/apache2/sites-available/000-default.conf</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>&lt;VirtualHost *:80&gt;
+    <span class="highlight">ProxyPreserveHost On</span>
+
+    <span class="highlight">ProxyPass / http://127.0.0.1:8080/</span>
+    <span class="highlight">ProxyPassReverse / http://127.0.0.1:8080/</span>
+&lt;/VirtualHost&gt;
+</code></pre>
+<p>If you followed along with the example servers in Step 2, use <code>127.0.0.1:8080</code> as written in the block above. If you have your own application servers, use their addresses instead.</p>
+
+<p>There are three directives here:</p>
+
+<ul>
+<li><code>ProxyPreserveHost</code> makes Apache pass the original <code>Host</code> header to the backend server. This is useful, as it makes the backend server aware of the address used to access the application.</li>
+<li><code>ProxyPass</code> is the main proxy configuration directive. In this case, it specifies that everything under the root URL (<code>/</code>) should be mapped to the backend server at the given address. For example, if Apache gets a request for <code>/example</code>, it will connect to <code>http://<span class="highlight">your_backend_server</span>/example</code>  and return the response to the original client.</li>
+<li><code>ProxyPassReverse</code> should have the same configuration as <code>ProxyPass</code>. It tells Apache to modify the response headers from backend server. This makes sure that if the backend server returns a location redirect header, the client&#x2019;s browser will be redirected to the proxy address and not the backend server address, which would not work as intended.</li>
+</ul>
+
+<p>To put these changes into effect, restart Apache.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo systemctl restart apache2
+</li></ul></code></pre>
+<p>Now, if you access <code>http://<span class="highlight">your_server_ip</span></code> in a web browser, you will see your backend server response instead of standard Apache welcome page. If you followed Step 2, this means you&#x2019;ll see <strong>Hellow world!</strong>.</p>
+
+<h3 id="example-2-&#x2014;-load-balancing-across-multiple-backend-servers">Example 2 &#x2014; Load Balancing Across Multiple Backend Servers</h3>
+
+<p>If you have multiple backend servers, a good way to distribute the traffic across them when proxying is to use  load balancing features of <code>mod_proxy</code>.</p>
+
+<p>Replace all the contents within the <code>VirtualHost</code> block with the following, so your configuration file looks like this:</p>
+<div class="code-label " title="/etc/apache2/sites-available/000-default.conf">/etc/apache2/sites-available/000-default.conf</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>&lt;VirtualHost *:80&gt;
+<span class="highlight">&lt;Proxy balancer://mycluster&gt;</span>
+    <span class="highlight">BalancerMember http://127.0.0.1:8080</span>
+    <span class="highlight">BalancerMember http://127.0.0.1:8081</span>
+<span class="highlight">&lt;/Proxy&gt;</span>
+
+    <span class="highlight">ProxyPreserveHost On</span>
+
+    <span class="highlight">ProxyPass / balancer://mycluster/</span>
+    <span class="highlight">ProxyPassReverse / balancer://mycluster/</span>
+&lt;/VirtualHost&gt;
+</code></pre>
+<p>The configuration is similar to the previous one, but instead of specifying a single backend server directly, we&#x2019;ve used an additional <code>Proxy</code> block to define multiple servers. The block is named <code>balancer://<span class="highlight">mycluster</span></code> (the name can be freely altered) and consists of one or more <code>BalancerMember</code>s, which specify the underlying backend server addresses. The <code>ProxyPass</code> and <code>ProxyPassReverse</code> directives use the load balancer pool named <code>mycluster</code> instead of a specific server.</p>
+
+<p>If you followed along with the example servers in Step 2, use <code>127.0.0.1:8080</code>  and <code>127.0.0.1:8081</code> for the <code>BalancerMember</code> directives, as written in the block above. If you have your own application servers, use their addresses instead.</p>
+
+<p>To put these changes into effect, restart Apache.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo systemctl restart apache2
+</li></ul></code></pre>
+<p>If you access <code>http://<span class="highlight">your_server_ip</span></code> in a web browser, you will see your backend servers&#x2019; responses instead of the standard Apache page. If you followed Step 2, refreshing the page multiple times should show <strong>Hello world!</strong> and <strong>Howdy world!</strong>, meaning the reverse proxy worked and is load balancing between both servers.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>You now know how to set up Apache as a reverse proxy to one or many underlying application servers. <code>mod_proxy</code> can be used effectively to configure reverse proxy to application servers written in a vast array of languages and technologies, such as Python and Django or Ruby and Ruby on Rails. It can be also used to balance traffic between multiple backend servers for sites with lots of traffic or to provide high availability through multiple servers, or to provide secure SSL support to backend servers not supporting SSL natively.</p>
+
+<p>While <code>mod_proxy</code> with <code>mod_proxy_http</code> is the perhaps most commonly used combination of modules, there are several others that support different network protocols. We didn&#x2019;t use them here, but some other popular modules include:</p>
+
+<ul>
+<li><code>mod_proxy_ftp</code> for FTP.</li>
+<li><code>mod_proxy_connect</code> for SSL tunneling.</li>
+<li><code>mod_proxy_ajp</code> for AJP (Apache JServ Protocol), like Tomcat-based backends.</li>
+<li><code>mod_proxy_wstunnel</code> for web sockets.</li>
+</ul>
+
+<p>To learn more about <code>mod_proxy</code>, you can read <a href="http://httpd.apache.org/docs/current/mod/mod_proxy.html">the official Apache <code>mod_proxy</code> documentation</a>.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/mati">
+            <img alt="mati" class="avatar avatar-large" src="../steps/https:/secure.gravatar.com/avatar/3dbc43ecbf78845181c103d5d0f251b7?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/mati">Mateusz Papiernik</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors two">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+          <li class="collaborator-byline-avatar">
+            <a href="/community/users/hazelnut">
+                <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/6cbcddbff2a699eb6c34ad6c4ca1a211b4e173a0.jpg?1484088962" alt="6cbcddbff2a699eb6c34ad6c4ca1a211b4e173a0"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>          </li>
+
+
+        <li class="collaborators-byline-data">
+            <p class="names">Editor: <a href="/community/users/hazelnut">Hazel Vird&#xF3;</a></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2236" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04/flag" data-flaggable-id="2236">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04?utm_content=how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04?utm_content=how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04?utm_content=how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">6</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+  
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2236);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04","headline":"How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04","alternativeHeadline":"How To Use Apache as a Reverse Proxy with mod_proxy on Ubuntu 16.04","description":"In this tutorial, you will set up Apache as a reverse proxy using the `mod_proxy` extension to redirect incoming connections to underlying application server(s) running on the same network. There are instructions on setting up a simple web app using the Flask framework to show how Apache interacts with the real application hidden behind it, but you can also follow this tutorial using your existing application server, if you have one.","keywords":"Apache,Load Balancing","url":"https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-use-apache-as-a-reverse-proxy-with-mod_proxy-on-ubuntu-16-04"},"dateModified":"2017-02-01T22:53:19Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Mateusz Papiernik","@id":"https://www.digitalocean.com/community/users/mati"}],"datePublished":"2017-02-01T22:53:19Z","editor":{"@type":"Person","name":"Hazel Virdó","@id":"hazelnut"},"image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"12"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"5"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
