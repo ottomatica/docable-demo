@@ -1,0 +1,367 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How to Set Up a Jekyll Development Site on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="Jekyll is a static-site generator that provides some of the benefits of a Content Management System (CMS) while avoiding the performance and security issues introduced by such database-driven sites. In this tutorial, we will install a Jekyll 3.7.3 dev">
+<meta name="keywords" content="Ruby Applications">
+
+<meta name="og:title" content="How to Set Up a Jekyll Development Site on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="Jekyll is a static-site generator that provides some of the benefits of a Content Management System (CMS) while avoiding the performance and security issues introduced by such database-driven sites. In this tutorial, we will install a Jekyll 3.7.3 dev">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How to Set Up a Jekyll Development Site on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="Jekyll is a static-site generator that provides some of the benefits of a Content Management System (CMS) while avoiding the performance and security issues introduced by such database-driven sites. In this tutorial, we will install a Jekyll 3.7.3 dev">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-set-up-a-jekyll-development-site-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-set-up-a-jekyll-development-site-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="q8KPw2SYz13+AZD2aYCziQweZwcpsxD3PbvQxIvkpPzigPy2qnNRDO7S0P6n4xupXhXdOsj7MknT2tiUk8hLPA==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2037" data-js="tutorial" data-upvote="null" data-flagged>
+        <h1 class="content-title Tutorial-header">How to Set Up a Jekyll Development Site on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Updated</span><span class="tutorial-date">March 20, 2018</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">44.4k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/applications?type=tutorials">Applications</a> <a class="tag" href="/community/tags/ruby?type=tutorials">Ruby</a>
+      <a class="tag" href="/community/tags/ubuntu?type=tutorials">Ubuntu</a> <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/melissaanderson">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="..\steps\https:\community-cdn-digitalocean-com.global.ssl.fastly.net\assets\users\avatars\large\68930a325bec611115077ff82a88ba57ce370372.png?1469887092" alt="68930a325bec611115077ff82a88ba57ce370372"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/melissaanderson">Melissa Anderson</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>Jekyll is a static-site generator that provides some of the benefits of a Content Management System (CMS) while avoiding the performance and security issues introduced by such database-driven sites. It is &#x201C;blog-aware,&#x201D; and includes special features to handle date-organized content, although its usefulness is not limited to blogging sites. Jekyll is well-suited for people who need to work off-line, prefer using lightweight editors to web forms for content maintenance, and wish to use version control to track changes to their website.</p>
+
+<p>In this tutorial, we will install a Jekyll 3.7.3 development site on Ubuntu 16.04. In later tutorials, we&#x2019;ll explore the content generated here, publish a static site to the same server, and eventually deploy to a production location.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>To follow this tutorial, you will need:</p>
+
+<ul>
+<li><strong>An Ubuntu 16.04 server with a non-root user with sudo privileges</strong>:  You can learn more about how to set up a user with these privileges in our <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup with Ubuntu 16.04</a> guide.</li>
+</ul>
+
+<p>Once you&#x2019;ve completed this prerequisite, you&#x2019;re ready to install Jekyll and its dependencies.</p>
+
+<h2 id="step-1-&#x2014;-installing-jekyll">Step 1 &#x2014; Installing Jekyll</h2>
+
+<p>We&#x2019;ll start by updating our package list to be sure we have the latest information on the newest versions of packages and their dependencies:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get update
+</li></ul></code></pre>
+<p>Then we&#x2019;ll install Ruby and its development libraries as well as <code>make</code> and <code>build-essential</code> so that Jekyll&#x2019;s libraries will compile once we install Jekyll:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install ruby ruby-dev make build-essential
+</li></ul></code></pre>
+<p>When that is complete, we will move on to adding two lines to our <code>.bashrc</code> file to instruct Ruby&#x2019;s <code>gem</code> package manager to place gems in our user&#x2019;s home folder. This avoids complications that can arise from system-wide installations, while also adding the local <code>jekyll</code> command to the user&#x2019;s <code>PATH</code>. </p>
+
+<p>Open <code>.bashrc</code> by typing the following:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano .bashrc
+</li></ul></code></pre>
+<p>At the bottom of the file, add the following lines:</p>
+<div class="code-label " title=".bashrc">.bashrc</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash"># Ruby exports
+
+export GEM_HOME=$HOME/gems
+export PATH=$HOME/gems/bin:$PATH
+</code></pre>
+<p>Save and close the file. To activate the exports, run the following:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">source ~/.bashrc
+</li></ul></code></pre>
+<p>When that&#x2019;s complete, we&#x2019;ll use <code>gem</code> to install Jekyll itself as well as Bundler, which manages Gem dependencies:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">gem install jekyll bundler
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ERROR:  Error installing jekyll:
+	jekyll-sass-converter requires Ruby version &gt;= 2.4.0.
+</span><span> exit code: 1</span><span> command output:<br> Successfully installed public_suffix-4.0.1
+Successfully installed addressable-2.7.0
+Successfully installed colorator-1.1.0
+Building native extensions.  This could take a while...
+Successfully installed http_parser.rb-0.6.0
+Building native extensions.  This could take a while...
+Successfully installed eventmachine-1.2.7
+Successfully installed em-websocket-0.5.1
+Successfully installed concurrent-ruby-1.1.5
+
+HEADS UP! i18n 1.1 changed fallbacks to exclude default locale.
+But that may break your application.
+
+Please check your Rails app for &apos;config.i18n.fallbacks = true&apos;.
+If you&apos;re using I18n (&gt;= 1.1.0) and Rails (&lt; 5.2.2), this should be
+&apos;config.i18n.fallbacks = [I18n.default_locale]&apos;.
+If not, fallbacks will be broken in your app by I18n 1.1.x.
+
+For more info see:
+https://github.com/svenfuchs/i18n/releases/tag/v1.1.0
+
+Successfully installed i18n-1.7.0
+Building native extensions.  This could take a while...
+Successfully installed ffi-1.11.1
+Building native extensions.  This could take a while...
+Successfully installed sassc-2.2.1
+Successfully installed bundler-2.0.2
+Parsing documentation for bundler-2.0.2
+Installing ri documentation for bundler-2.0.2
+Done installing documentation for bundler after 7 seconds
+1 gem installed</span></pre>
+<p>Next, we&#x2019;ll make sure that our firewall settings allow traffic to and from Jekyll&#x2019;s development web server.</p>
+
+<h2 id="step-2-&#x2014;-opening-the-firewall">Step 2 &#x2014; Opening the Firewall</h2>
+
+<p>We&#x2019;ll begin by checking the firewall status to see if it&#x2019;s enabled. If so, we&#x2019;ll ensure traffic to our site is permitted so we will be able to view our development site in a web browser.</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ufw status
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Status: inactive</span></pre>
+<p>In this case, only SSH is allowed through:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>Status: active
+To Action  From
+-- ------  ----
+OpenSSH ALLOW   Anywhere
+OpenSSH (v6)   ALLOW   Anywhere (v6)
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Status: inactive</span></pre>
+<p>You may have other rules in place or no firewall rules at all. Since only SSH traffic is permitted in this case, we&#x2019;ll need to open port 4000, the default port for the Jekyll development server:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ufw allow 4000
+</li></ul></code></pre>
+<p>Let&#x2019;s double-check the status:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ufw status
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Status: inactive</span></pre>
+<p>Now our firewall rules look like:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>To                         Action      From
+--                         ------      ----
+OpenSSH                    ALLOW       Anywhere
+4000                       ALLOW       Anywhere
+OpenSSH (v6)               ALLOW       Anywhere (v6)
+4000 (v6)                  ALLOW       Anywhere (v6)
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Status: inactive</span></pre>
+<p>With the software installed and the necessary port open, we&#x2019;re ready to create the development site.</p>
+
+<h2 id="step-3-&#x2014;-creating-a-new-development-site">Step 3 &#x2014; Creating a New Development Site</h2>
+
+<p>From our home directory, we&#x2019;ll use Jekyll&#x2019;s <code>new</code> command to create scaffolding for a site in a sub-directory called <code>www</code>:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cd ~
+</li><li class="line" prefix="$">jekyll new <span class="highlight">www</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: line 1: jekyll: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>The <code>jekyll new</code> command initiates <code>bundle install</code> to install the required dependencies, and automatically installs a theme called <a href="https://github.com/jekyll/minima">Minima</a>. Following successful installation, you should see output like the following:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>New jekyll site installed in /home/<span class="highlight">sammy</span>/www.
+</code><br><br><span>&#xFE0F;&#x2755;error: bash: line 1: jekyll: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>Jekyll&#x2019;s <code>new</code> command creates the following directories and files:</p>
+<pre class="code-pre "><code langs>&#x2026;
+&#x251C;&#x2500;&#x2500; 404.html
+&#x251C;&#x2500;&#x2500; about.md
+&#x251C;&#x2500;&#x2500; _config.yml
+&#x251C;&#x2500;&#x2500; Gemfile
+&#x251C;&#x2500;&#x2500; Gemfile.lock
+&#x251C;&#x2500;&#x2500; index.md
+&#x251C;&#x2500;&#x2500; _posts
+&#x2502;&#xA0;&#xA0; &#x2514;&#x2500;&#x2500; 2018-03-19-welcome-to-jekyll.markdown
+&#x2514;&#x2500;&#x2500; _site
+</code></pre>
+<p>These aren&#x2019;t the actual web site files. They are the source files which Jekyll will use to <em>create</em> the static site. Jekyll relies on specific names, naming patterns, and directory structures to parse the different sources of content and assemble them into a static site. It&#x2019;s important to use the existing structure and follow Jekyll&#x2019;s naming conventions when adding new posts and pages.</p>
+
+<span class="note"><p>
+<strong>Tip:</strong> <code>tree</code> is a useful command for seeing file and directory structures from the command-line. You can install it with the following command:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install tree
+</li></ul></code></pre>
+<p>To use it, <code>cd</code> into the directory you want and type <code>tree</code> or provide the path to the starting point with <code>tree /home/<span class="highlight">sammy</span>/www</code><br></p></span>
+
+<h2 id="step-4-&#x2014;-starting-jekyll-39-s-web-server">Step 4 &#x2014; Starting Jekyll&#x2019;s Web Server</h2>
+
+<p>Jekyll&#x2019;s built-in lightweight web server is tailored to support site development by monitoring the files in the directory and automatically regenerating the static site any time a change is saved. Because we are working on a remote server, we&#x2019;ll specify the host address in order to browse the site from our local machine. If you are working on a local machine, you can run <code>jekyll serve</code>  without the host setting and connect with <code>http://localhost:4000</code>.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">cd ~/www
+</li><li class="line" prefix="$">jekyll serve --host=<span class="highlight">203.0.113.0</span>
+</li></ul></code></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output of jekyll server">Output of jekyll server</div>Configuration file: /home/<span class="highlight">sammy</span>/www/_config.yml
+            Source: /home/<span class="highlight">sammy</span>/www
+       Destination: /home/<span class="highlight">sammy</span>/www/_site
+ Incremental build: disabled. Enable with --incremental
+      Generating&#x2026;
+                    done in 0.645 seconds.
+ Auto-regeneration: enabled for &apos;/home/<span class="highlight">sammy</span>/www&apos;
+    Server address: <span class="highlight">http://203.0.113.0:4000/</span>
+  Server running&#x2026; press ctrl-c to stop.
+</code></pre>
+<p>When we invoked <code>jekyll serve</code>,  Jekyll parsed the configuration and content files into a new directory, <code>_site</code> and started serving the content in that <code>_site</code> folder:  </p>
+<pre class="code-pre "><code langs>&#x2026;
+&#x251C;&#x2500;&#x2500; 404.html
+&#x251C;&#x2500;&#x2500; about.md
+&#x251C;&#x2500;&#x2500; _config.yml
+&#x251C;&#x2500;&#x2500; Gemfile
+&#x251C;&#x2500;&#x2500; Gemfile.lock
+&#x251C;&#x2500;&#x2500; index.md
+&#x251C;&#x2500;&#x2500; _posts
+&#x2502;&#xA0;&#xA0; &#x2514;&#x2500;&#x2500; 2018-03-19-welcome-to-jekyll.markdown
+<span class="highlight">&#x2514;&#x2500;&#x2500; _site</span>
+<span class="highlight">    &#x251C;&#x2500;&#x2500; 404.html</span>
+<span class="highlight">    &#x251C;&#x2500;&#x2500; about</span>
+<span class="highlight">    &#x2502;&#xA0;&#xA0; &#x2514;&#x2500;&#x2500; index.html</span>
+<span class="highlight">    &#x251C;&#x2500;&#x2500; assets</span>
+<span class="highlight">    &#x2502;&#xA0;&#xA0; &#x251C;&#x2500;&#x2500; main.css</span>
+<span class="highlight">    &#x2502;&#xA0;&#xA0; &#x2514;&#x2500;&#x2500; minima-social-icons.svg</span>
+<span class="highlight">    &#x251C;&#x2500;&#x2500; feed.xml</span>
+<span class="highlight">    &#x251C;&#x2500;&#x2500; index.html</span>
+<span class="highlight">    &#x2514;&#x2500;&#x2500; jekyll</span>
+<span class="highlight">        &#x2514;&#x2500;&#x2500; update</span>
+<span class="highlight">            &#x2514;&#x2500;&#x2500; 2018</span>
+<span class="highlight">                &#x2514;&#x2500;&#x2500; 03</span>
+<span class="highlight">                    &#x2514;&#x2500;&#x2500; 19</span>
+<span class="highlight">                        &#x2514;&#x2500;&#x2500; welcome-to-jekyll.html</span>
+</code></pre>
+<p>It also started watching the current directory, <code>www</code>, for changes. As soon as a change to a post or page is saved, the static site will automatically be rebuilt, so it&#x2019;s important not to make changes directly to files in the <code>_site</code> folder.</p>
+
+<p>If we leave this terminal open with the development server running in the foreground when working on our site, we will receive immediate feedback as we add pages and posts and change content.</p>
+
+<p><span class="note"><strong>Note:</strong> If you&#x2019;re working with a large site, enabling the <code>--incremental</code> build can speed up the rebuild each time you make a change by only regenerating the files that are changed, but we don&#x2019;t need it for this small site. You can learn more about this experimental feature <a href="https://jekyllrb.com/docs/configuration/#build-command-options">on the Jekyll website</a>.<br></span></p>
+
+<p>The site is now available. In a web browser, we can visit it at the server address and port shown in the the output from <code>jekyll serve</code>:</p>
+
+<p><img src="..\steps\http:\assets.digitalocean.com\articles\jekyll-1604\jekyll_home_update.png" alt="Screenshot of the Jekyll homepage"></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this tutorial, we installed Jekyll and created a development site with some automatically-generated content. In our <a href="https://www.digitalocean.com/community/tutorials/exploring-jekyll-s-default-content">next guide</a>, we will explore this content to illustrate how Jekyll transforms the source files into a static site and inform the decisions about our configuration settings.</p>
+
+    </div>
+</div>
+
+DigitalOcean, LLC. All rights reserved.
+
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2037);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How to Set Up a Jekyll Development Site on Ubuntu 16.04","headline":"How to Set Up a Jekyll Development Site on Ubuntu 16.04","alternativeHeadline":"How to Set Up a Jekyll Development Site on Ubuntu 16.04","description":"Jekyll is a static-site generator that provides some of the benefits of a Content Management System (CMS) while avoiding the performance and security issues introduced by such database-driven sites. In this tutorial, we will install a Jekyll 3.7.3 development site on Ubuntu 16.04. In later tutorials, we'll explore the content generated here, publish a static site to the same server, and eventually deploy to a production location.","keywords":"Applications,Ruby","url":"https://www.digitalocean.com/community/tutorials/how-to-set-up-a-jekyll-development-site-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-set-up-a-jekyll-development-site-on-ubuntu-16-04"},"dateModified":"2019-05-23T13:28:16Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Melissa Anderson","@id":"https://www.digitalocean.com/community/users/melissaanderson"}],"datePublished":"2016-09-21T01:47:05Z","image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"11"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"2"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>

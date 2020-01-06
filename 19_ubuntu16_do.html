@@ -1,0 +1,655 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="Packetbeat lets you monitor real-time network traffic for application level protocols like HTTP and MySQL, as well as DNS and other services. To do this, you configure agents, called &#x201C;shippers&#x201D;, on client machines which sniff and parse network traffic">
+<meta name="keywords" content="Elasticsearch Logging">
+
+<meta name="og:title" content="How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="Packetbeat lets you monitor real-time network traffic for application level protocols like HTTP and MySQL, as well as DNS and other services. To do this, you configure agents, called &#x201C;shippers&#x201D;, on client machines which sniff and parse network traffic">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="Packetbeat lets you monitor real-time network traffic for application level protocols like HTTP and MySQL, as well as DNS and other services. To do this, you configure agents, called &#x201C;shippers&#x201D;, on client machines which sniff and parse network traffic">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="mc8pYKzblrH5F5btW504VZ/etKxL3IsGt6PO3K07o6tyiqXYGfiFXJj88qqRtJ57ojPydHabFLFkY9iyR4ze8A==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KHWBBT');
+</script>
+<!-- End Google Tag Manager -->
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2093" data-js="tutorial" data-upvote="null" data-flagged>
+    
+
+    <div class="outside_viewport">
+        <div id="contents-modal" class="modal fade mini-modal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Contents</h1>
+          <button class="close-button icon icon-close-light" data-dismiss="modal" aria-label="close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-of-contents-modal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="share-modal" class="modal fade mini-modal" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1>Share</h1>
+        <button type="button" class="close-button icon icon-close-light" aria-label="close" data-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="social-sharing social-sharing-container">
+          <ul class="top ">
+            <li class="shareBtn" id="sbTwitter">
+              <a href="http://twitter.com/share?text=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-icon share-popup" title="Share on Twitter" target="_blank">
+                <span class="sIcon icon-bird"></span>
+              </a>
+              <a href="http://twitter.com/share?text=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-link share-popup" title="Share on Twitter" target="_blank">
+                Twitter
+              </a>
+            </li>
+            <li class="shareBtn" id="sbFacebook">
+              <a class="share-icon share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                <span class="sIcon icon-facebook-B"></span>
+              </a>
+
+              <a class="share-link share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                Facebook
+              </a>
+            </li>
+            <li class="shareBtn" id="sbYC">
+              <a href="https://news.ycombinator.com/submitlink?t=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-icon share-popup" target="_blank" title="Submit to Hacker News">
+                <span class="sIcon icon-hacker-news"></span>
+              </a>
+              <a href="https://news.ycombinator.com/submitlink?t=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-link share-popup" target="_blank" title="Submit to Hacker News">
+                Hacker News
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <h1 class="content-title Tutorial-header">How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">November  3, 2016</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">12.4k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/elasticsearch?type=tutorials">Elasticsearch</a> <a class="tag" href="/community/tags/logging?type=tutorials">Logging</a>
+      <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/girirajsharma">
+            <img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/42b873f291fe8cc2d790f6380674395f401440b1.jpg?1486702538" alt="42b873f291fe8cc2d790f6380674395f401440b1">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/girirajsharma">Giriraj Sharma</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>Packetbeat lets you monitor real-time network traffic for application level protocols like HTTP and MySQL, as well as DNS and other services.</p>
+
+<p>To do this, you configure agents, called &#x201C;shippers&#x201D;, on client machines which sniff and parse network traffic and map the messages to transactions. These shippers then generate records for each action and send them to Elasticsearch or Logstash. Once you have the data, you can search, analyze, and visualize the data with Kibana so you can make informed decisions about your infrastructure or troubleshoot problems. </p>
+
+<p>In this tutorial, you&#x2019;ll configure and use Packetbeat with an ELK stack to gather and visualize infrastructure metrics.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+<li>One Ubuntu 16.04 server with 4GB of RAM, configured with the ELK Stack setup described in the tutorial <a href="https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elk-stack-on-ubuntu-16-04">How To Install Elasticsearch, Logstash, and Kibana on Ubuntu 16.04</a>. Follow the tutorial to configure the ELK stack and install the Kibana dashboards, but don&#x2019;t configure any client machines.</li>
+<li>One Ubuntu 16.04 server with any amount of RAM, which will serve as a client machine.</li>
+<li>A standard user account with <code>sudo</code> privileges <strong>for each server</strong>. You can set up a standard account by following the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup with Ubuntu 16.04</a> tutorial.</li>
+</ul>
+
+<h2 id="step-1-&#x2014;-loading-the-packetbeat-index-template-in-elasticsearch">Step 1 &#x2014; Loading the Packetbeat Index Template in Elasticsearch</h2>
+
+<p>Because we are planning on using Packetbeat to ship logs to Elasticsearch, we first load the Packetbeat index template, which configures Elasticsearch to analyze incoming Packetbeat fields in an intelligent way.</p>
+
+<p>First, log in to your ELK server:</p>
+<pre class="code-pre command local-environment"><code langs><ul class="prefixed"><li class="line" prefix="$">ssh <span class="highlight">sammy</span>@<span class="highlight">your_elk_server_ip</span>
+</li></ul></code></pre>
+<p>Once logged in, download the Packetbeat index template to your home directory:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="elk: $">cd ~
+</li><li class="line" prefix="elk: $">curl -O https://raw.githubusercontent.com/elastic/beats/master/packetbeat/packetbeat.template-es2x.json
+</li></ul></code></pre>
+<p>Then load the template with this command:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="elk: $">curl -XPUT &apos;http://localhost:9200/_template/packetbeat&apos; -d@packetbeat.template-es2x.json
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to localhost port 9200: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>You&#x2019;ll see the output if the template was loaded successfully.</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>{&quot;acknowledged&quot;:true}
+</code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to localhost port 9200: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>Now that your ELK server is ready to accept data from Packetbeat, let&#x2019;s set up the shipper on a client server.</p>
+
+<h2 id="step-2-&#x2014;-setting-up-packetbeat-on-a-client-server">Step 2 &#x2014; Setting Up Packetbeat on a Client Server</h2>
+
+<p>To set up the Packetbeat shipper, you need to get the SSL certificate that you created in the prerequisite tutorial over to the client server.  It is required to establish communication between the client servers and the ELK server.</p>
+
+<p>Locate the IP address of your client server. Then, <strong>on your ELK server</strong>, copy the SSL certificate to your client server using the <code>scp</code> command:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="elk: $">scp /etc/pki/tls/certs/logstash-forwarder.crt <span class="highlight">sammy@your_client_server_private_ip_address</span>:/tmp
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ssh: Could not resolve hostname your_client_server_private_ip_address: Name or service not known
+lost connection
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>After providing your password, ensure that the certificate copy was successful.</p>
+
+<p>Now, log into your <strong>client server</strong>:</p>
+<pre class="code-pre command local-environment"><code langs><ul class="prefixed"><li class="line" prefix="$">ssh <span class="highlight">sammy@your_client_server_ip_address</span>
+</li></ul></code></pre>
+<p>Once logged in, copy the ELK server&#x2019;s SSL certificate into the <code><span class="highlight">/etc/pki/tls/certs</span></code> directory:</p>
+<pre class="code-pre custom_prefix second-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo mkdir -p /etc/pki/tls/certs
+</li><li class="line" prefix="client: $&gt;">sudo cp /tmp/logstash-forwarder.crt /etc/pki/tls/certs/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: cp: cannot stat &apos;/tmp/logstash-forwarder.crt&apos;: No such file or directory
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Next, we need to install Packetbeat itself. On your client server, ensure that the Beats source list exists. Open the file <code><span class="highlight">/etc/apt/sources.list.d/beats.list</span></code> for editing:</p>
+<pre class="code-pre custom_prefix second-environment"><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo nano /etc/apt/sources.list.d/beats.list
+</li></ul></code></pre>
+<p>If you&#x2019;ve previously installed shippers, this file may already contain the following line:</p>
+<div class="code-label " title="/etc/apt/source.list.d/beats.list">/etc/apt/source.list.d/beats.list</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>deb https://packages.elastic.co/beats/apt stable main
+</code></pre>
+<p>If the file is blank, or this line does not exist, please add it and save the file. Then exit the editor.</p>
+
+<p>To install this source, we&#x2019;ll need a GPG key. Packetbeat uses the same GPG key as Elasticsearch, which we install with this command:</p>
+<pre class="code-pre custom_prefix second-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+</li></ul></code></pre>
+<p>Now, install the Packetbeat package:</p>
+<pre class="code-pre custom_prefix second-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo apt-get update
+</li><li class="line" prefix="client: $&gt;">sudo apt-get install packetbeat
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: E: Unable to locate package packetbeat
+</span><span> exit code: 100</span><span> command output:<br> Reading package lists...
+Building dependency tree...
+Reading state information...</span></pre>
+<p>Packetbeat is now installed but needs to be configured before you can use it.</p>
+
+<h2 id="step-3-&#x2014;-configuring-packetbeat-on-the-client">Step 3 &#x2014; Configuring Packetbeat on the Client</h2>
+
+<p>Packetbeat needs to know what to log and where to send the data.  Let&#x2019;s configure it to connect to Logstash on our ELK server and define what kind of traffic we want it to watch. We&#x2019;ll do that by modifying the default configuration file that comes with Packetbeat. </p>
+
+<p>On the client server, edit the Packetbeat configuration file:</p>
+<pre class="code-pre custom_prefix second-environment"><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo nano /etc/packetbeat/packetbeat.yml
+</li></ul></code></pre>
+<p><span class="note"><strong>Note:</strong> Packetbeat&#x2019;s configuration file is in the YAML format, which means that indentation is very important! Be sure to use the same number of spaces that are indicated in these instructions.<br></span></p>
+
+<p>Near the top of the file, you will see the <code>input</code> section, which is where you can specify which metrics and statistics should be sent to the ELK server. We&#x2019;ll use the default input settings, but feel free to change it to fit your needs.</p>
+
+<p>Select the network interface from which to capture the traffic. On Linux, Packetbeat supports capturing all messages sent or received by the server on which Packetbeat is installed. For this, use <code><span class="highlight">any</span></code> as the device:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs># Select the network interfaces to sniff the data. You can use the &quot;any&quot;
+# keyword to sniff on all connected interfaces.
+interfaces:
+  device: <span class="highlight">any</span>
+</code></pre>
+<p>In the <code>protocols</code> section, configure the ports on which Packetbeat can find each protocol. If you use any non-standard ports, add them here. Otherwise, the default values should do just fine.</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>protocols:
+  dns:
+    ports: <span class="highlight">[53]</span>
+
+    include_authorities: true
+    include_additionals: true
+
+  http:
+    ports: <span class="highlight">[80, 8080, 8081, 5000, 8002]</span>
+
+  memcache:
+    ports: <span class="highlight">[11211]</span>
+
+  mysql:
+    ports: <span class="highlight">[3306]</span>
+
+  pgsql:
+    ports: <span class="highlight">[5432]</span>
+
+  redis:
+    ports: <span class="highlight">[6379]</span>
+
+  thrift:
+    ports: <span class="highlight">[9090]</span>
+
+  mongodb:
+    ports: <span class="highlight">[27017]</span>
+</code></pre>
+<p>Next, we need to tell Packetbeat where to send its data.</p>
+
+<p>Under the <code>output</code> section, find the line that starts with <code>elasticsearch:</code>, which indicates the Elasticsearch output section. We are not going to use this section, so <strong>delete or comment out the entire Elasticsearch output section</strong>, up to the line that says <code>#logstash:</code>).</p>
+
+<p>Start deleting here:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>  ### Elasticsearch as output
+  elasticsearch:
+    # Array of hosts to connect to.
+    # Scheme and port can be left out and will be set to the default (http and 9200)
+
+    &#x2026;
+</code></pre>
+<p>And keep deleting until you find this line:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>  ### Logstash as output
+</code></pre>
+<p>Instead of sending the data to Elasticsearch, we&#x2019;re going to send it to Logstash. So find the commented-out Logstash output section, indicated by the line that starts with <code>#logstash:.</code> Uncomment that line by deleting the preceding <code>#</code>. Then uncomment the <code><span class="highlight">hosts: [&quot;localhost:5044&quot;]</span></code> line and change <code>localhost</code> to the private IP address of your ELK server. The section of the configuration file should look like this:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>  ### Logstash as output
+  logstash:
+    # The Logstash hosts
+    hosts: [&quot;<span class="highlight">your_ELK_server_private_ip_address</span>:5044&quot;]
+</code></pre>
+<p>This configures Packetbeat to connect to Logstash on your ELK server on port <code>5044</code>, the port we specified for Logstash input in the prerequisite tutorial.</p>
+
+<p>Next, find the <code>tls</code> section, and remove the comment in front of <code>tls:</code>. Then uncomment the line that specifies <code>certificate_authorities</code>, and change its value to <code><span class="highlight">[&quot;/etc/pki/tls/certs/logstash-forwarder.crt&quot;]</span></code>:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>    tls:
+      # List of root certificates for HTTPS server verifications
+      certificate_authorities: [<span class="highlight">&quot;/etc/pki/tls/certs/logstash-forwarder.crt&quot;</span>]
+</code></pre>
+<p>This configures Packetbeat to use the certificate we copied from the ELK server. Without this, the client will be unable to establish a connection.</p>
+
+<p>If you want to double-check your configuration file, compare yours with this example, which has most of the unnecessary comments omitted to improve readability:</p>
+<div class="code-label " title="packetbeat.yml">packetbeat.yml</div><pre class="code-pre yaml passing"><span>&#x2713; </span><code langs>############################# Sniffer #########################################
+interfaces:
+  device: any
+
+############################# Protocols #######################################
+protocols:
+  dns:
+    ports: <span class="highlight">[53]</span>
+
+    include_authorities: true
+    include_additionals: true
+
+  http:
+    ports: <span class="highlight">[80, 8080, 8081, 5000, 8002]</span>
+
+  memcache:
+    ports: <span class="highlight">[11211]</span>
+
+  mysql:
+    ports: <span class="highlight">[3306]</span>
+
+  pgsql:
+    ports: <span class="highlight">[5432]</span>
+
+  redis:
+    ports: <span class="highlight">[6379]</span>
+
+  thrift:
+    ports: <span class="highlight">[9090]</span>
+
+  mongodb:
+    ports: <span class="highlight">[27017]</span>
+
+############################# Output ##########################################
+output:
+
+  ### Logstash as output
+   logstash:
+    hosts: [&quot;<span class="highlight">your_ELK_server_private_ip_address</span>:5044&quot;]
+
+    tls:
+      certificate_authorities: [<span class="highlight">&quot;/etc/pki/tls/certs/logstash-forwarder.crt&quot;</span>]
+
+############################# Logging #########################################
+logging:
+
+  files:
+    rotateeverybytes: 10485760 # = 10MB
+</code></pre>
+<p>Once you&#x2019;ve reviewed your configuration, save the file and exit the text editor.</p>
+
+<p>Now restart Packetbeat to put your changes into place:</p>
+<pre class="code-pre custom_prefix second-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo service packetbeat restart
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Failed to restart packetbeat.service: Unit packetbeat.service not found.
+</span><span> exit code: 5</span><span> command output:<br> </span></pre>
+<p>And configure Packetbeat to start when your server restarts:</p>
+<pre class="code-pre custom_prefix second-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">sudo update-rc.d packetbeat defaults 95 10
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: update-rc.d: error: initscript does not exist: /etc/init.d/packetbeat
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Repeat this section for any other servers that you want to monitor.</p>
+
+<p>Packetbeat should now be listening for network traffic and sending it off to Logstash. Let&#x2019;s see if it&#x2019;s working.</p>
+
+<h2 id="step-4-&#x2014;-testing-the-packetbeat-installation">Step 4 &#x2014; Testing the Packetbeat Installation</h2>
+
+<p>At this point, Packetbeat on your client server should be shipping logs of your network traffic to Logstash on your ELK server. Logstash should be loading the Packetbeat data into Elasticsearch in an date-stamped index called  <code>packetbeat-YYYY.MM.DD</code>. Let&#x2019;s test that this works by creating a simple HTTP request on the client machine and looking for that request in Elasticsearch on the ELK server. </p>
+
+<p>On your client server, use <code>curl</code> to make a request to <code>http://www.elastic.co</code>.</p>
+<pre class="code-pre custom_prefix second-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="client: $&gt;">curl http://www.elastic.co/ &gt; /dev/null
+</li></ul></code></pre>
+<p>Then, on your ELK server, verify that Elasticsearch is indeed receiving the data by querying for the Packetbeat index with this command:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="elk: $">curl -XGET &apos;http://localhost:9200/packetbeat-*/_search?pretty&apos;
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to localhost port 9200: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>You should see a bunch of output that looks like this:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-json"><div class="secondary-code-label " title="Output">Output</div>{
+  &quot;_index&quot; : &quot;packetbeat-2016.09.29&quot;,
+  &quot;_type&quot; : &quot;http&quot;,
+  &quot;_id&quot; : &quot;AVdDG6pDqHsDFrI4DAlI&quot;,
+  &quot;_score&quot; : 1.0,
+  &quot;_source&quot; : {
+    &quot;responsetime&quot; : 80,
+    &quot;path&quot; : &quot;/&quot;,
+    &quot;beat&quot; : {
+      &quot;hostname&quot; : &quot;<span class="highlight">your_client_server_hostname</span>&quot;,
+      &quot;name&quot; : &quot;<span class="highlight">your_client_server_name</span>&quot;
+    },
+    &quot;direction&quot; : &quot;out&quot;,
+    &quot;port&quot; : 80,
+    &quot;server&quot; : &quot;&quot;,
+    &quot;status&quot; : &quot;OK&quot;,
+    &quot;params&quot; : &quot;&quot;,
+    &quot;count&quot; : 1,
+    &quot;client_port&quot; : 52072,
+    &quot;client_proc&quot; : &quot;&quot;,
+    &quot;ip&quot; : &quot;<span class="highlight">52.38.222.131</span>&quot;,
+    &quot;bytes_out&quot; : 432,
+    &quot;bytes_in&quot; : 78,
+    &quot;query&quot; : &quot;GET /&quot;,
+    &quot;http&quot; : {
+      &quot;code&quot; : 301,
+      &quot;content_length&quot; : 178,
+      &quot;phrase&quot; : &quot;Permanently&quot;
+    },
+    &quot;proc&quot; : &quot;&quot;,
+    &quot;client_ip&quot; : &quot;<span class="highlight">your_client_server_ip</span>&quot;,
+    &quot;client_server&quot; : &quot;&quot;,
+    &quot;@timestamp&quot; : &quot;2016-09-29T15:41:07.725Z&quot;,
+    &quot;type&quot; : &quot;http&quot;,
+    &quot;method&quot; : &quot;GET&quot;,
+    &quot;@version&quot; : &quot;1&quot;,
+    &quot;host&quot; : &quot;<span class="highlight">your_client_server_hostname</span>&quot;,
+    &quot;tags&quot; : [ &quot;beats_input_raw_event&quot; ]
+  }
+}
+</code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (7) Failed to connect to localhost port 9200: Connection refused
+</span><span> exit code: 7</span><span> command output:<br> </span></pre>
+<p>If your output shows 0 total hits, Elasticsearch is not loading any Packetbeat data under the index you searched for, and you should try again after a few seconds, as it may take a short time for the data to be picked up. If you still see no results after waiting, review your setup for errors.  Ensure you have pointed Packetbeat&#x2019;s configuration file at the certificate you transferred over, as this will fail silently if the path is incorrect.</p>
+
+<p>Once you have received the expected output, you can move on to the next step and learn how to use Kibana to see some charts and graphs of your network traffic.</p>
+
+<h2 id="step-5-&#x2014;-visualizing-data-with-kibana">Step 5 &#x2014; Visualizing Data with Kibana</h2>
+
+<p>When you are finished setting up Packetbeat on all of the servers that you want to gather system stats for, let&#x2019;s look at Kibana.</p>
+
+<p>In a web browser, go to the domain name or public IP address of your ELK server. After entering your ELK server&#x2019;s credentials, you should see your Kibana Discover page.</p>
+
+<p><span class="note"><strong>Note</strong>: You configured these credentials during the prerequisite tutorial when you configured the user for Kibana.<br></span></p>
+
+<p>Click the <strong>Settings</strong> tab at the top of the page. Now, select <strong>packetbeat-*</strong> from the <strong>Index Patterns</strong> menu on the left side of the interface:</p>
+
+<p><img src="../steps/http:/i.imgur.com/Gcd1SSE.png" alt="Select Packetbeat Index Pattern"></p>
+
+<p>Then select the <strong>Discover</strong> tab at the top of the screen to view this data. You&#x2019;ll see the following on your screen:</p>
+
+<p><img src="../steps/http:/i.imgur.com/JIhUioG.png" alt="Packetbeat log entries"></p>
+
+<p>From here you can view your various Packetbeat entries by filtering on the available fields. You can click on these fields to add them, or visualize them using aggregations (count, sum, min, max, median etc).</p>
+
+<p>Kibana also provides a wide range of visualizations that you can use to analyze data. Click the <strong>Visualize</strong> tab at the top of the screen to list visualizations or open a saved visualization.</p>
+
+<p><img src="../steps/http:/i.imgur.com/7BTCiY2.png" alt="Packetbeat Visualizations"></p>
+
+<p>Next, let&#x2019;s check out the sample Packetbeat dashboard that we loaded at the beginning of this tutorial. Click the <strong>Dashboard</strong> tab at the top of the screen, then click the <strong>Load Saved Dashboard</strong> icon on the right side of the screen. You&#x2019;ll see a list of Dashboard filters as paginated suggestions: </p>
+
+<p><img src="../steps/http:/i.imgur.com/hqDKrjo.png" alt="View Example Packetbeat Dashboard Types"></p>
+
+<p>Select <strong>Packetbeat-Dashboard</strong> from the list of suggestions. Since we only have a few web requests as documents in our index, the dashboard will result in <strong>No results found</strong> for DB, Cache, RPC transactions, or other results.</p>
+
+<p><img src="../steps/http:/i.imgur.com/e9HUsfn.png" alt="View Example Packetbeat Dashboard Top"></p>
+
+<p>But if you scroll down, you will see a variety of metrics that were gathered from your client servers that you installed Packetbeat on.</p>
+
+<p><img src="../steps/http:/i.imgur.com/g5aQb8g.png" alt="View Example Packetbeat Dashboard Bottom"></p>
+
+<p>From here you can create charts based on the index data. For example, you can create a chart that shows HTTP query breakdown based on response time, which can help track down slow responses from your web applications. And you can drill down more by using sub-aggregations to find the response time for each code, domains visited, and much more.  </p>
+
+<p>You can explore the <a href="https://www.elastic.co/guide/en/beats/packetbeat/current/visualizing-data-packetbeat.html">Packetbeat documentation</a> to learn more.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Now that your system metrics are centralized via Elasticsearch and Logstash, and you are able to visualize them with Kibana, you should be able to see what your servers are up to at a glance. From here, you may want to investigate other shippers, including Filebeat, Topbeat, and others. Look at the <a href="https://www.elastic.co/products/beats">Beats</a> page for more information on available shippers.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/girirajsharma">
+            <img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/42b873f291fe8cc2d790f6380674395f401440b1.jpg?1486702538" alt="42b873f291fe8cc2d790f6380674395f401440b1">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/girirajsharma">Giriraj Sharma</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors one">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+
+
+        <li class="collaborators-byline-data">
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2093" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04/flag" data-flaggable-id="2093">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04?utm_content=how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">1</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2093);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04","headline":"How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04","alternativeHeadline":"How To Gather Infrastructure Metrics with Packetbeat and ELK on Ubuntu 16.04","description":"Packetbeat lets you monitor real-time network traffic for application level protocols like HTTP and MySQL, as well as DNS and other services. To do this, you configure agents, called “shippers”, on client machines which sniff and parse network traffic and map the messages...","keywords":"Elasticsearch,Logging","url":"https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-packetbeat-and-elk-on-ubuntu-16-04"},"dateModified":"2016-11-03T14:25:04Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Giriraj Sharma","@id":"https://www.digitalocean.com/community/users/girirajsharma"}],"datePublished":"2016-11-03T14:25:04Z","image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"4"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"1"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>

@@ -1,0 +1,933 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Test Ansible Roles with Molecule on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="Unit testing in Ansible is key to making sure roles function as intended. Molecule makes this process easier by allowing you to specify scenarios that test roles against different environments. In this guide, you will build an Ansible role and test it">
+<meta name="keywords" content="Ansible">
+
+<meta name="og:title" content="How To Test Ansible Roles with Molecule on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="Unit testing in Ansible is key to making sure roles function as intended. Molecule makes this process easier by allowing you to specify scenarios that test roles against different environments. In this guide, you will build an Ansible role and test it">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Test Ansible Roles with Molecule on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="Unit testing in Ansible is key to making sure roles function as intended. Molecule makes this process easier by allowing you to specify scenarios that test roles against different environments. In this guide, you will build an Ansible role and test it">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="1XIH3f9VpLwtG4fzIwEbFHBb48baXumu+e7f34/0FUu1iP93dnRIXl3M23pWeE1brxPjDN4tmCFnj6iegGrHmA==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<!-- Google Tag Manager -->
+<script>
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KHWBBT');
+</script>
+<!-- End Google Tag Manager -->
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2662" data-js="tutorial" data-upvote="null" data-flagged>
+    
+
+    <div class="outside_viewport">
+        <div id="contents-modal" class="modal fade mini-modal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1>Contents</h1>
+          <button class="close-button icon icon-close-light" data-dismiss="modal" aria-label="close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-of-contents-modal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="share-modal" class="modal fade mini-modal" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1>Share</h1>
+        <button type="button" class="close-button icon icon-close-light" aria-label="close" data-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="social-sharing social-sharing-container">
+          <ul class="top ">
+            <li class="shareBtn" id="sbTwitter">
+              <a href="http://twitter.com/share?text=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-icon share-popup" title="Share on Twitter" target="_blank">
+                <span class="sIcon icon-bird"></span>
+              </a>
+              <a href="http://twitter.com/share?text=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-link share-popup" title="Share on Twitter" target="_blank">
+                Twitter
+              </a>
+            </li>
+            <li class="shareBtn" id="sbFacebook">
+              <a class="share-icon share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                <span class="sIcon icon-facebook-B"></span>
+              </a>
+
+              <a class="share-link share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                Facebook
+              </a>
+            </li>
+            <li class="shareBtn" id="sbYC">
+              <a href="https://news.ycombinator.com/submitlink?t=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-icon share-popup" target="_blank" title="Submit to Hacker News">
+                <span class="sIcon icon-hacker-news"></span>
+              </a>
+              <a href="https://news.ycombinator.com/submitlink?t=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-link share-popup" target="_blank" title="Submit to Hacker News">
+                Hacker News
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="table-of-contents">
+    <div data-js="tableOfContentsDesktop"></div>
+  </div>
+  
+  
+  
+  <div id="share-modal" class="modal fade mini-modal" style="display: none;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1>Share</h1>
+        <button type="button" class="close-button icon icon-close-light" aria-label="close" data-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="social-sharing social-sharing-container">
+          <ul class="bottom ">
+            <li class="shareBtn" id="sbTwitter">
+              <a href="http://twitter.com/share?text=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-icon share-popup" title="Share on Twitter" target="_blank">
+                <span class="sIcon icon-bird"></span>
+              </a>
+              <a href="http://twitter.com/share?text=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare" class="share-link share-popup" title="Share on Twitter" target="_blank">
+                Twitter
+              </a>
+            </li>
+            <li class="shareBtn" id="sbFacebook">
+              <a class="share-icon share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                <span class="sIcon icon-facebook-B"></span>
+              </a>
+
+              <a class="share-link share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare" title="Share on Facebook" target="_blank">
+                Facebook
+              </a>
+            </li>
+            <li class="shareBtn" id="sbYC">
+              <a href="https://news.ycombinator.com/submitlink?t=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-icon share-popup" target="_blank" title="Submit to Hacker News">
+                <span class="sIcon icon-hacker-news"></span>
+              </a>
+              <a href="https://news.ycombinator.com/submitlink?t=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare" class="share-link share-popup" target="_blank" title="Submit to Hacker News">
+                Hacker News
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <h1 class="content-title Tutorial-header">How To Test Ansible Roles with Molecule on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">July  2, 2018</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">33.2k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/ansible?type=tutorials">Ansible</a>
+      <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/varunchopra">
+            <img alt="varunchopra" class="avatar avatar-large" src="..\steps\https:\secure.gravatar.com\avatar\c2feac0155458bcd115f15d1158adae7?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/varunchopra">Varun Chopra</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <p><em>The author selected the <a href="https://www.brightfunds.org/organizations/mozilla-foundation">Mozilla Foundation</a> to receive a donation as part of the <a href="https://do.co/w4do-cta">Write for DOnations</a> program.</em></p>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>Unit testing in <a href="https://www.ansible.com/">Ansible</a> is key to making sure roles function as intended. <a href="https://github.com/metacloud/molecule/">Molecule</a> makes this process easier by allowing you to specify scenarios that test roles against different environments. Using Ansible under the hood, Molecule offloads roles to a provisioner that deploys the role in a configured environment and calls a verifier (such as <a href="https://github.com/philpep/testinfra">Testinfra</a>) to check for configuration drift. This ensures that your role has made all of the expected changes to the environment in that particular scenario.</p>
+
+<p>In this guide, you will build an Ansible role that deploys <a href="https://httpd.apache.org/">Apache</a> to a host and configures <a href="https://firewalld.org/">Firewalld</a> on CentOS 7. To test that this role works as intended, you will create a test in Molecule using <a href="https://www.docker.com/">Docker</a> as a driver and Testinfra, a Python library for testing the state of servers. Molecule will provision Docker containers to test the role and Testinfra will verify that the server has been configured as intended. When you&#x2019;re finished, you&#x2019;ll be able to create multiple test cases for builds across environments and run these tests using Molecule.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>Before you begin this guide you&#x2019;ll need the following:</p>
+
+<ul>
+<li>One Ubuntu 16.04 server. Follow the steps in the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup with Ubuntu 16.04</a> guide to create a non-root sudo user, and make sure you can connect to the server without a password.</li>
+<li>Docker installed on your server. Follow Steps 1 and 2 in <a href="https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04">How To Install and Use Docker on Ubuntu 16.04</a>, and be sure to add your non-root user to the <code>docker</code> group.</li>
+<li>Familiarity with Ansible playbooks. For review, see <a href="https://www.digitalocean.com/community/tutorials/configuration-management-101-writing-ansible-playbooks">Configuration Management 101: Writing Ansible Playbooks</a>.</li>
+</ul>
+
+<h2 id="step-1-&#x2014;-preparing-the-environment">Step 1 &#x2014; Preparing the Environment</h2>
+
+<p>In order to create our role and tests, let&#x2019;s first create a virtual environment and install Molecule. Installing Molecule will also install Ansible, enabling the use of playbooks to create roles and run tests.</p>
+
+<p>Start by logging in as your non-root user and making sure your repositories are up-to-date:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get update
+</li></ul></code></pre>
+<p>This will ensure that your package repository includes the latest version of the <code>python-pip</code> package, which will install <code>pip</code> and Python 2.7. We will use <code>pip</code> to create a virtual environment and install additional packages. To install <code>pip</code>, run:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install -y python-pip
+</li></ul></code></pre>
+<p>Use <code>pip</code> to install the <code>virtualenv</code> Python module:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">python -m pip install virtualenv
+</li></ul></code></pre>
+<p>Next, let&#x2019;s create and activate the virtual environment: </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">python -m virtualenv <span class="highlight">my_env</span>
+</li></ul></code></pre>
+<p>Activate it to ensure that your actions are restricted to that environment:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">source my_env/bin/activate
+</li></ul></code></pre>
+<p>Install <code>molecule</code> and <code>docker</code> using <code>pip</code>:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:$">python -m pip install molecule docker
+</li></ul></code></pre>
+<p>Here is what each of these packages will do:</p>
+
+<ul>
+<li><code>molecule</code>: This is the main Molecule package that you will use to test roles. Installing <code>molecule</code> automatically installs Ansible, along with other dependencies, and enables the use of Ansible playbooks to execute roles and tests.</li>
+<li><code>docker</code>: This Python library is used by Molecule to interface with Docker. You will need this since you&#x2019;re using Docker as a driver.</li>
+</ul>
+
+<p>Next, let&#x2019;s create a role in Molecule.</p>
+
+<h2 id="step-2-&#x2014;-creating-a-role-in-molecule">Step 2 &#x2014; Creating a Role in Molecule</h2>
+
+<p>With your environment set up, you can use Molecule to create a basic role to test an installation of Apache. This role will create the directory structure and some initial tests, and specify Docker as the driver so that Molecule uses Docker to run its tests.</p>
+
+<p>Create a new role called <code>ansible-apache</code>:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:$">molecule init role -r ansible-apache -d docker
+</li></ul></code></pre>
+<p>The <code>-r</code> flag specifies the name of the role while <code>-d</code> specifies the driver, which provisions the hosts for Molecule to use in testing.</p>
+
+<p>Change into the directory of the newly created role:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:$">cd ansible-apache
+</li></ul></code></pre>
+<p>Test the default role to check if Molecule has been set up properly:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">molecule test
+</li></ul></code></pre>
+<p>You will see output that lists each of the default test actions:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>--&gt; Validating schema /home/sammy/ansible-apache/molecule/default/molecule.yml.
+Validation completed successfully.
+--&gt; Test matrix
+
+&#x2514;&#x2500;&#x2500; default
+    &#x251C;&#x2500;&#x2500; lint
+    &#x251C;&#x2500;&#x2500; destroy
+    &#x251C;&#x2500;&#x2500; dependency
+    &#x251C;&#x2500;&#x2500; syntax
+    &#x251C;&#x2500;&#x2500; create
+    &#x251C;&#x2500;&#x2500; prepare
+    &#x251C;&#x2500;&#x2500; converge
+    &#x251C;&#x2500;&#x2500; idempotence
+    &#x251C;&#x2500;&#x2500; side_effect
+    &#x251C;&#x2500;&#x2500; verify
+    &#x2514;&#x2500;&#x2500; destroy
+&#x2026;
+</code></pre>
+<p>Before starting the test, Molecule validates the configuration file <code>molecule.yml</code> to make sure everything is in order. It also prints this test matrix, which specifies the order of test actions.</p>
+
+<p>We will discuss each test action in detail once you&#x2019;ve created your role and customized your tests. For now, pay attention to the <code>PLAY_RECAP</code> for each test, and be sure that none of the default actions returns a <code>failed</code> status. For example, the <code>PLAY_RECAP</code> for the default <code>&apos;create&apos;</code> action should look like this:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+PLAY RECAP *********************************************************************
+localhost                  : ok=5    changed=4    unreachable=0    failed=0
+</code></pre>
+<p>Let&#x2019;s move on to modifying the role to configure Apache and Firewalld.</p>
+
+<h2 id="step-3-&#x2014;-configuring-apache-and-firewalld">Step 3 &#x2014; Configuring Apache and Firewalld</h2>
+
+<p>To configure Apache and Firewalld, you will create a tasks file for the role, specifying packages to install and services to enable. These details will be extracted from a variables file and template that you will use to replace the default Apache index page.</p>
+
+<p>Create a tasks file for the role using <code>nano</code> or your favorite text editor:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">nano tasks/main.yml
+</li></ul></code></pre>
+<p>You&#x2019;ll see that the file already exists. Delete what&#x2019;s there and paste the following code to install the required packages and enable the correct services, HTML defaults, and firewall settings:</p>
+<div class="code-label " title="~/ansible-apache/tasks/main.yml">~/ansible-apache/tasks/main.yml</div><pre class="code-pre yaml failing"><span>&#x10102; </span><code langs>---
+- name: &quot;Ensure required packages are present&quot;
+  yum:
+    name: &quot;{{ pkg_list }}&quot;
+    state: present
+
+- name: &quot;Ensure latest index.html is present&quot;
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+
+- name: &quot;Ensure httpd service is started and enabled&quot;
+  service:
+    name: &quot;{{ item }}&quot;
+    state: started
+    enabled: true
+  with_items: &quot;{{ svc_list }}&quot;
+
+- name: &quot;Whitelist http in firewalld&quot;
+  firewalld:
+    service: http
+    state: enabled
+    permanent: true
+    immediate: true
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/tasks/main.yml: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>This playbook includes 4 tasks:</p>
+
+<ul>
+<li><code>&quot;Ensure required packages are present&quot;</code>: This task will install the packages listed in the variables file under <code>pkg_list</code>. The variables file will be located at <code>~/ansible-apache/vars/main.yml</code> and you will create it at the end of this step.</li>
+<li><code>&quot;Ensure latest index.html is present&quot;</code>: This task will copy a template page <code>index.html.j2</code> and paste it over the default index file, <code>/var/www/html/index.html</code>, generated by Apache. You will also create the template in this step.</li>
+<li><code>&quot;Ensure httpd service is started and enabled&quot;</code>: This task will start and enable the services listed in <code>svc_list</code> in the variables file.</li>
+<li><code>&quot;Whitelist http in firewalld&quot;</code>: This task will whitelist the <code>http</code> service in <code>firewalld</code>. Firewalld is a complete firewall solution present by default on CentOS servers. For the <code>http</code> service to work, you will need to expose the required ports. Instructing <code>firewalld</code> to whitelist a service ensures that it whitelists all of the ports that the service requires.</li>
+</ul>
+
+<p>Save and close the file when you are finished.</p>
+
+<p>Next, let&#x2019;s create a <code>templates</code> directory for the <code>index.html.j2</code> template page:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">mkdir templates
+</li></ul></code></pre>
+<p>Create the page itself:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">nano templates/index.html.j2
+</li></ul></code></pre>
+<p>Paste in the following boilerplate code:</p>
+<div class="code-label " title="~/ansible-apache/templates/index.html.j2">~/ansible-apache/templates/index.html.j2</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-html">&lt;div style=&quot;text-align: center&quot;&gt;
+    &lt;h2&gt;Managed by Ansible&lt;/h2&gt;
+&lt;/div&gt;
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/templates/index.html.j2: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>Save and close the file.</p>
+
+<p>The final step in completing the role is writing the variables file, which provides the names of packages and services to your main role playbook:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">nano vars/main.yml
+</li></ul></code></pre>
+<p>Paste over the default content with the following code, which specifies <code>pkg_list</code> and <code>svc_list</code>:</p>
+<div class="code-label " title="~/ansible-apache/vars/main.yml">~/ansible-apache/vars/main.yml</div><pre class="code-pre yaml failing"><span>&#x10102; </span><code langs>---
+pkg_list:
+  - httpd
+  - firewalld
+svc_list:
+  - httpd
+  - firewalld
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/vars/main.yml: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>These lists contain the following information:</p>
+
+<ul>
+<li><code>pkg_list</code>: This contains the names of the packages that the role will install: <code>httpd</code> and <code>firewalld</code>.</li>
+<li><code>svc_list</code>: This contains the names of the services that the role will start and enable: <code>httpd</code> and <code>firewalld</code>.</li>
+</ul>
+
+<p><span class="note"><strong>Note:</strong> Make sure that your variables file doesn&#x2019;t have any blank lines or your test will fail during linting.<br></span></p>
+
+<p>Now that you&#x2019;ve finished creating the role, let&#x2019;s configure Molecule to test if it works as intended.</p>
+
+<h2 id="step-4-&#x2014;-modifying-the-role-for-running-tests">Step 4 &#x2014; Modifying the Role for Running Tests</h2>
+
+<p>In our case, configuring Molecule involves modifying the Molecule configuration file <code>molecule.yml</code> to add platform specifications. Because you&#x2019;re testing a role that configures and starts the <code>httpd</code> systemd service, you will need to use an image with systemd configured and privileged mode enabled. For this tutorial, you will use the <code>milcom/centos7-systemd</code> image <a href="https://hub.docker.com/r/milcom/centos7-systemd/">available on Docker Hub</a>. Privileged mode allows containers to run with almost all of the capabilities of their host machine.</p>
+
+<p>Let&#x2019;s edit <code>molecule.yml</code> to reflect these changes:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">nano molecule/default/molecule.yml
+</li></ul></code></pre>
+<p>Add the highlighted platform information:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/molecule.yml">~/ansible-apache/molecule/default/molecule.yml</div><pre class="code-pre yaml failing"><span>&#x10102; </span><code langs>---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  <span class="highlight">- name: centos7</span>
+    <span class="highlight">image: milcom/centos7-systemd</span>
+    <span class="highlight">privileged: true</span>
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+scenario:
+  name: default
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/molecule.yml: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>Save and close the file when you are done.</p>
+
+<p>Now that you&#x2019;ve successfully configured the test environment, let&#x2019;s move on to writing the test cases that Molecule will run against your container after executing the role.</p>
+
+<h2 id="step-5-&#x2014;-writing-test-cases">Step 5 &#x2014; Writing Test Cases</h2>
+
+<p>In the test for this role, you will check the following conditions:</p>
+
+<ul>
+<li>That the <code>httpd</code> and <code>firewalld</code> packages are installed.</li>
+<li>That the <code>httpd</code> and <code>firewalld</code> services are running and enabled.</li>
+<li>That the <code>http</code> service is enabled in your firewall settings.</li>
+<li>That <code>index.html</code> contains the same data specified in your template file.</li>
+</ul>
+
+<p>If all of these tests pass, then the role works as intended.</p>
+
+<p>To write the test cases for these conditions, let&#x2019;s edit the default tests in <code>~/ansible-apache/molecule/default/tests/test_default.py</code>. Using Testinfra, you will write the test cases as Python functions that use Molecule classes.</p>
+
+<p>Open <code>test_default.py</code>:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">nano molecule/default/tests/test_default.py
+</li></ul></code></pre>
+<p>Delete the contents of the file so that you can write the tests from scratch.</p>
+
+<p><span class="note"><strong>Note:</strong> As you write your tests, make sure that they are separated by two new lines or they will fail.<br></span></p>
+
+<p>Start by importing the required Python modules:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">import os
+import pytest
+
+import testinfra.utils.ansible_runner
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>These modules include:</p>
+
+<ul>
+<li><code>os</code>: This built-in Python module enables operating-system-dependent functionality, making it possible for Python to interface with the underlying operating system.</li>
+<li><code>pytest</code>: The <a href="https://docs.pytest.org/en/latest/"><code>pytest</code></a> module enables test writing.</li>
+<li><code>testinfra.utils.ansible_runner</code>: This Testinfra module uses <a href="https://testinfra.readthedocs.io/en/latest/backends.html#ansible">Ansible as the backend</a> for command execution.</li>
+</ul>
+
+<p>Under the module imports, paste in the following code, which uses the Ansible backend to return the current host instance:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">&#x2026;
+testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
+    os.environ[&apos;MOLECULE_INVENTORY_FILE&apos;]).get_hosts(&apos;all&apos;)
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>With your test file configured to use the Ansible backend, let&#x2019;s write unit tests to test the state of the host.</p>
+
+<p>The first test will ensure that <code>httpd</code> and <code>firewalld</code> are installed:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">&#x2026;
+
+@pytest.mark.parametrize(&apos;pkg&apos;, [
+  &apos;httpd&apos;,
+  &apos;firewalld&apos;
+])
+def test_pkg(host, pkg):
+    package = host.package(pkg)
+
+    assert package.is_installed
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>The test begins with the <a href="https://docs.pytest.org/en/latest/parametrize.html#pytest-mark-parametrize-parametrizing-test-functions"><code>pytest.mark.parametrize</code> decorator</a>, which allows us to parameterize the arguments for the test. This first test will take <code>test_pkg</code> as a parameter to test for the presence of the <code>httpd</code> and <code>firewalld</code> packages.</p>
+
+<p>The next test checks whether or not <code>httpd</code> and <code>firewalld</code> are running and enabled. It takes <code>test_svc</code> as a parameter:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">&#x2026;
+
+@pytest.mark.parametrize(&apos;svc&apos;, [
+  &apos;httpd&apos;,
+  &apos;firewalld&apos;
+])
+def test_svc(host, svc):
+    service = host.service(svc)
+
+    assert service.is_running
+    assert service.is_enabled
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>The last test checks that the files and contents passed to <code>parametrize()</code> exist. If the file isn&#x2019;t created by your role and the content isn&#x2019;t set properly, <code>assert</code> will return <code>False</code>:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">&#x2026;
+
+@pytest.mark.parametrize(&apos;file, content&apos;, [
+  (&quot;/etc/firewalld/zones/public.xml&quot;, &quot;&lt;service name=\&quot;http\&quot;/&gt;&quot;),
+  (&quot;/var/www/html/index.html&quot;, &quot;Managed by Ansible&quot;)
+])
+def test_files(host, file, content):
+    file = host.file(file)
+
+    assert file.exists
+    assert file.contains(content)
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>In each test, <code>assert</code> will return <code>True</code> or <code>False</code> depending on the test result.</p>
+
+<p>The finished file looks like this:</p>
+<div class="code-label " title="~/ansible-apache/molecule/default/tests/test_default.py">~/ansible-apache/molecule/default/tests/test_default.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">import os
+import pytest
+
+import testinfra.utils.ansible_runner
+
+testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
+    os.environ[&apos;MOLECULE_INVENTORY_FILE&apos;]).get_hosts(&apos;all&apos;)
+
+
+@pytest.mark.parametrize(&apos;pkg&apos;, [
+  &apos;httpd&apos;,
+  &apos;firewalld&apos;
+])
+def test_pkg(host, pkg):
+    package = host.package(pkg)
+
+    assert package.is_installed
+
+
+@pytest.mark.parametrize(&apos;svc&apos;, [
+  &apos;httpd&apos;,
+  &apos;firewalld&apos;
+])
+def test_svc(host, svc):
+    service = host.service(svc)
+
+    assert service.is_running
+    assert service.is_enabled
+
+
+@pytest.mark.parametrize(&apos;file, content&apos;, [
+  (&quot;/etc/firewalld/zones/public.xml&quot;, &quot;&lt;service name=\&quot;http\&quot;/&gt;&quot;),
+  (&quot;/var/www/html/index.html&quot;, &quot;Managed by Ansible&quot;)
+])
+def test_files(host, file, content):
+    file = host.file(file)
+
+    assert file.exists
+    assert file.contains(content)
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/ansible-apache/molecule/default/tests/test_default.py: No such file or directory
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>Now that you&#x2019;ve specified your test cases, let&#x2019;s test the role.</p>
+
+<h2 id="step-6-&#x2014;-testing-the-role-with-molecule">Step 6 &#x2014; Testing the Role with Molecule</h2>
+
+<p>Once you initiate the test, Molecule will execute the actions you defined in your scenario. Let&#x2019;s now run the default <code>molecule</code> scenario again, executing the actions in the default test sequence while looking more closely at each.</p>
+
+<p>Run the test for the default scenario again:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:~/ansible-apache$">molecule test
+</li></ul></code></pre>
+<p>This will initiate the test run. The initial output prints the default test matrix:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>--&gt; Validating schema /home/sammy/ansible-apache/molecule/default/molecule.yml.
+Validation completed successfully.
+--&gt; Test matrix
+
+&#x2514;&#x2500;&#x2500; default
+    &#x251C;&#x2500;&#x2500; lint
+    &#x251C;&#x2500;&#x2500; destroy
+    &#x251C;&#x2500;&#x2500; dependency
+    &#x251C;&#x2500;&#x2500; syntax
+    &#x251C;&#x2500;&#x2500; create
+    &#x251C;&#x2500;&#x2500; prepare
+    &#x251C;&#x2500;&#x2500; converge
+    &#x251C;&#x2500;&#x2500; idempotence
+    &#x251C;&#x2500;&#x2500; side_effect
+    &#x251C;&#x2500;&#x2500; verify
+    &#x2514;&#x2500;&#x2500; destroy
+</code></pre>
+<p>Let&#x2019;s go through each test action and the expected output, starting with linting.</p>
+
+<p>The <em>linting</em> action executes <code>yamllint</code>, <code>flake8</code>, and <code>ansible-lint</code>:</p>
+
+<ul>
+<li><code>yamllint</code>: This linter is executed on all YAML files present in the role directory.</li>
+<li><code>flake8</code>: This Python code linter checks tests created for Testinfra.</li>
+<li><code>ansible-lint</code>: This linter for Ansible playbooks is executed in all scenarios.</li>
+</ul>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;lint&apos;
+--&gt; Executing Yamllint on files found in /home/sammy/ansible-apache/&#x2026;
+Lint completed successfully.
+--&gt; Executing Flake8 on files found in /home/sammy/ansible-apache/molecule/default/tests/&#x2026;
+Lint completed successfully.
+--&gt; Executing Ansible Lint on /home/sammy/ansible-apache/molecule/default/playbook.yml&#x2026;
+Lint completed successfully.
+</code></pre>
+<p>The next action, <em>destroy</em>, is executed using the <code>destroy.yml</code> file. This is done to test your role on a newly created container.</p>
+
+<p>By default, destroy is called twice: at the start of the test run, to delete any pre-existing containers, and at the end, to delete the newly created container:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;destroy&apos;
+
+    PLAY [Destroy] *****************************************************************
+
+    TASK [Destroy molecule instance(s)] ********************************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Wait for instance(s) deletion to complete] *******************************
+    ok: [localhost] =&gt; (item=None)
+    ok: [localhost]
+
+    TASK [Delete docker network(s)] ************************************************
+    skipping: [localhost]
+
+    PLAY RECAP *********************************************************************
+    localhost                  : ok=2    changed=1    unreachable=0    failed=0
+</code></pre>
+<p>After the destroy action is complete, the test will move on to <em>dependency</em>. This action allows you to pull dependencies from <a href="https://galaxy.ansible.com/"><code>ansible-galaxy</code></a> if your role requires them. In this case, the role does not:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;dependency&apos;
+Skipping, missing the requirements file.
+</code></pre>
+<p>The next test action is a <em>syntax</em> check, which is executed on the default <code>playbook.yml</code> playbook. It works in a similar way to the <code>--syntax-check</code> flag in the command <code>ansible-playbook --syntax-check playbook.yml</code>:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;syntax&apos;
+
+    playbook: /home/sammy/ansible-apache/molecule/default/playbook.yml
+</code></pre>
+<p>Next, the test moves on to the <em>create</em> action. This uses the <code>create.yml</code> file in your role&#x2019;s Molecule directory to create a Docker container with your specifications:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;create&apos;
+
+    PLAY [Create] ******************************************************************
+
+    TASK [Log into a Docker registry] **********************************************
+    skipping: [localhost] =&gt; (item=None)
+    skipping: [localhost]
+
+    TASK [Create Dockerfiles from image names] *************************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Discover local Docker images] ********************************************
+    ok: [localhost] =&gt; (item=None)
+    ok: [localhost]
+
+    TASK [Build an Ansible compatible image] ***************************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Create docker network(s)] ************************************************
+    skipping: [localhost]
+
+    TASK [Create molecule instance(s)] *********************************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Wait for instance(s) creation to complete] *******************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    PLAY RECAP *********************************************************************
+    localhost                  : ok=5    changed=4    unreachable=0    failed=0
+</code></pre>
+<p>After create, the test moves on to the <em>prepare</em> action. This action executes the prepare playbook, which brings the host to a specific state before running converge. This is useful if your role requires a pre-configuration of the system before the role is executed. Again, this does not apply to our role:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;prepare&apos;
+Skipping, prepare playbook not configured.
+</code></pre>
+<p>After prepare, the <em>converge</em> action executes your role on the container by running the <code>playbook.yml</code> playbook. If multiple platforms are configured in the <code>molecule.yml</code> file, Molecule will converge on all of these:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;converge&apos;
+
+    PLAY [Converge] ****************************************************************
+
+    TASK [Gathering Facts] *********************************************************
+    ok: [centos7]
+
+    TASK [ansible-apache : Ensure required packages are present] *******************
+    changed: [centos7]
+
+    TASK [ansible-apache : Ensure latest index.html is present] ********************
+    changed: [centos7]
+
+    TASK [ansible-apache : Ensure httpd service is started and enabled] ************
+    changed: [centos7] =&gt; (item=httpd)
+    changed: [centos7] =&gt; (item=firewalld)
+
+    TASK [ansible-apache : Whitelist http in firewalld] ****************************
+    changed: [centos7]
+
+    PLAY RECAP *********************************************************************
+    centos7                    : ok=5    changed=4    unreachable=0    failed=0
+</code></pre>
+<p>After coverge, the test moves on to <em>idempotence</em>. This action tests the playbook for idempotence to make sure no unexpected changes are made in multiple runs:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;idempotence&apos;
+Idempotence completed successfully.
+</code></pre>
+<p>The next test action is the <em>side-effect</em> action. This lets you produce situations in which you&#x2019;ll be able to test more things, like HA failover. By default, Molecule doesn&#x2019;t configure a side-effect playbook and the task is skipped:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;side_effect&apos;
+Skipping, side effect playbook not configured.
+</code></pre>
+<p>Molecule will then run the <em>verifier</em> action using the default verifier, Testinfra. This action executes the tests you wrote earlier in <code>test_default.py</code>. If all the tests pass successfully, you will see a success message and Molecule will proceed to the next step:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;verify&apos;
+--&gt; Executing Testinfra tests found in /home/sammy/ansible-apache/molecule/default/tests/&#x2026;
+    ============================= test session starts ==============================
+    platform linux2 -- Python 2.7.12, pytest-3.8.0, py-1.6.0, pluggy-0.7.1
+    rootdir: /home/sammy/ansible-apache/molecule/default, inifile:
+    plugins: testinfra-1.14.1
+collected 6 items
+
+    tests/test_default.py ......                                             [100%]
+
+    ========================== 6 passed in 56.73 seconds ===========================
+<span class="highlight">Verifier completed successfully.</span>
+</code></pre>
+<p>Finally, Molecule <em>destroys</em> the instances completed during the test and deletes the network assigned to those instances:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>&#x2026;
+--&gt; Scenario: &apos;default&apos;
+--&gt; Action: &apos;destroy&apos;
+
+    PLAY [Destroy] *****************************************************************
+
+    TASK [Destroy molecule instance(s)] ********************************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Wait for instance(s) deletion to complete] *******************************
+    changed: [localhost] =&gt; (item=None)
+    changed: [localhost]
+
+    TASK [Delete docker network(s)] ************************************************
+    skipping: [localhost]
+
+    PLAY RECAP *********************************************************************
+    localhost                  : ok=2    changed=2    unreachable=0    failed=0
+</code></pre>
+<p>The test actions are now complete, verifying that your role worked as intended.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this article you created an Ansible role to install and configure Apache and Firewalld. You then wrote unit tests with Testinfra that Molecule used to assert that the role ran successfully. </p>
+
+<p>You can use the same basic method for highly complex roles, and automate testing using a CI pipeline as well. Molecule is a highly configurable tool that can be used to test roles with any providers that Ansible supports, not just Docker. It&#x2019;s also possible to automate testing against your own infrastructure, making sure that your roles are always up-to-date and functional. The official <a href="https://molecule.readthedocs.io/en/latest/">Molecule documentation</a> is the best resource for learning how to use Molecule.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/varunchopra">
+            <img alt="varunchopra" class="avatar avatar-large" src="..\steps\https:\secure.gravatar.com\avatar\c2feac0155458bcd115f15d1158adae7?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/varunchopra">Varun Chopra</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors two">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+          <li class="collaborator-byline-avatar">
+            <a href="/community/users/katjuell">
+                <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="..\steps\https:\community-cdn-digitalocean-com.global.ssl.fastly.net\assets\users\avatars\large\748ce760fc8ab2840a415f65ee0d674c24845854.jpg?1509387359" alt="748ce760fc8ab2840a415f65ee0d674c24845854"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>          </li>
+
+
+        <li class="collaborators-byline-data">
+            <p class="names">Editor: <a href="/community/users/katjuell">Kathleen Juell</a></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2662" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04/flag" data-flaggable-id="2662">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Test Ansible Roles with Molecule on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04?utm_content=how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">3</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2662);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Test Ansible Roles with Molecule on Ubuntu 16.04","headline":"How To Test Ansible Roles with Molecule on Ubuntu 16.04","alternativeHeadline":"How To Test Ansible Roles with Molecule on Ubuntu 16.04","description":"Unit testing in Ansible is key to making sure roles function as intended. Molecule makes this process easier by allowing you to specify scenarios that test roles against different environments. In this guide, you will build an Ansible role and test its functionality using Molecule. When you're finished, you'll be able to create multiple test cases for builds across environments and run these tests using Molecule.","keywords":"Ansible,July 2018","url":"https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-test-ansible-roles-with-molecule-on-ubuntu-16-04"},"dateModified":"2018-09-18T19:52:54Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Varun Chopra","@id":"https://www.digitalocean.com/community/users/varunchopra"}],"datePublished":"2018-07-02T15:41:52Z","editor":{"@type":"Person","name":"Kathleen Juell","@id":"katjuell"},"image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"11"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"2"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
