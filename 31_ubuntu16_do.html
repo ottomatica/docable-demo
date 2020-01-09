@@ -1,0 +1,870 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>Deploying React Applications with Webhooks and Slack on Ubuntu  | DigitalOcean</title>
+
+<meta name="description" content="When a developer is making continuous changes to an application, a deployment system with webhooks can streamline development, particularly for teams. Integrating Slack notifications for code changes into a team&apos;s workflow can also be helpful if part">
+<meta name="keywords" content="Deployment Applications React Nginx">
+
+<meta name="og:title" content="Deploying React Applications with Webhooks and Slack on Ubuntu  | DigitalOcean">
+<meta name="og:description" content="When a developer is making continuous changes to an application, a deployment system with webhooks can streamline development, particularly for teams. Integrating Slack notifications for code changes into a team&apos;s workflow can also be helpful if part">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="Deploying React Applications with Webhooks and Slack on Ubuntu  | DigitalOcean">
+<meta name="twitter:description" content="When a developer is making continuous changes to an application, a deployment system with webhooks can streamline development, particularly for teams. Integrating Slack notifications for code changes into a team&apos;s workflow can also be helpful if part">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="kOxpe0JsRCNtsAILWuCeUq1+WVDIHy8vUvbhf/NPuqxLpX63NxhnIOCoB3H4O7mdiPSsDzLPqWfs0Vr3u0NMwQ==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2658" data-js="tutorial" data-upvote="null" data-flagged>
+  
+    <h1 class="content-title Tutorial-header">Deploying React Applications with Webhooks and Slack on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">June 20, 2018</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">15.6k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/applications?type=tutorials">Applications</a> <a class="tag" href="/community/tags/deployment?type=tutorials">Deployment</a> <a class="tag" href="/community/tags/nginx?type=tutorials">Nginx</a> <a class="tag" href="/community/tags/react?type=tutorials">React</a>
+      <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/sanjin">
+            <img alt="sanjin" class="avatar avatar-large" src="../steps/https:/secure.gravatar.com/avatar/5771f218cbffed86da5778f82a4fbb27?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/sanjin">Sanjin &#x160;ari&#x107;</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <p><em>The author selected the <a href="https://www.brightfunds.org/funds/tech-education">Tech Education Fund</a> to receive a donation as part of the <a href="https://do.co/w4do-cta">Write for DOnations</a> program.</em></p>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>When a developer is making continuous changes to an application, a deployment system with webhooks can streamline development, particularly for teams. Integrating Slack notifications for code changes into a team&#x2019;s workflow can also be helpful if part of the team relies on back-end software like an API.</p>
+
+<p>In this tutorial, you will build a React application with the <a href="https://github.com/facebook/create-react-app"><code>create-react-app</code> <code>npm</code> package</a>. This package simplifies the work of bootstrapping a React project by transpiling syntax and streamlining work with dependencies and prerequisite tools. After adding your application code to a GitHub repository, you will configure Nginx to serve your updated project files. You will then download and set up the webhook server and configure GitHub to communicate with it when your code is modified. Finally, you&#x2019;ll configure Slack to act as another webhook server, which will receive notifications when a successful deploy has been triggered.  </p>
+
+<p>Ultimately, the deployment system you are building in this article will look like this:</p>
+
+<p><img src="../steps/https:/assets.digitalocean.com/articles/react_deploy_webhooks/react-deploy.gif" alt="Sample deployment"> </p>
+
+<p>This short video shows an empty commit and push to the GitHub repository, which triggers the application build and notifications in Slack.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>To complete this tutorial, you will need:</p>
+
+<ul>
+<li>An Ubuntu 16.04 server, which you can set up by following the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup with Ubuntu 16.04 tutorial</a>. After following this guide, you should have a non-root user account with sudo privileges.</li>
+<li>Nginx installed on your server by following the first two steps of <a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04">How To Install Nginx on Ubuntu 16.04</a>. </li>
+<li>Git configured on both your local machine and your server. You can find instructions for installing and configuring Git in this tutorial on <a href="https://www.digitalocean.com/community/tutorials/contributing-to-open-source-getting-started-with-git">getting started with Git</a>. </li>
+<li>Node.js and <code>npm</code> installed on your local machine and server. For your server, follow the instructions on installing Node.js from a PPA in <a href="https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-16-04#how-to-install-using-a-ppa">How To Install Node.js on Ubuntu 16.04</a>. On your local machine, you can follow the <a href="https://nodejs.org/en/download/">project&#x2019;s installation directions</a>.</li>
+<li>Yarn installed on your server by following the official guide on <a href="https://yarnpkg.com/lang/en/docs/install/">installing yarn</a>.</li>
+<li>Permissions to configure Slack and individual channels for notifications. You can find more information on roles and permissions in the <a href="https://get.slack.help/hc/en-us/articles/201314026-Roles-and-permissions-in-Slack">Slack permissions docs</a>. </li>
+</ul>
+
+<h2 id="step-1-&#x2014;-creating-a-react-application-using-create-react-app">Step 1 &#x2014; Creating a React Application Using create-react-app</h2>
+
+<p>Let&#x2019;s first build the application that we will use to test our webhooks with <code>create-react-app</code>. We can then create a GitHub repository and push the project code to it. </p>
+
+<p>On your local machine, add the <code>create-react-app</code> node module to your global repository and make the <code>create-react-app</code> command available in your shell environment:</p>
+<pre class="code-pre command local-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo npm install -g create-react-app
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: sudo: npm: command not found
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Next, run <code>create-react-app</code> to create a project called <code><span class="highlight">do-react-example-app</span></code>:</p>
+<pre class="code-pre command local-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">create-react-app <span class="highlight">do-react-example-app</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: create-react-app: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>Navigate to the directory <code><span class="highlight">do-react-example-app</span></code>:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cd <span class="highlight">do-react-example-app</span>
+</li></ul></code></pre>
+<p>With <code>nano</code> or your favorite text editor, open the <code>package.json</code> file: </p>
+<pre class="code-pre command local-environment"><code langs><ul class="prefixed"><li class="line" prefix="$">nano package.json
+</li></ul></code></pre>
+<p>The file should look like this:</p>
+<div class="code-label " title="~/do-react-example-app/package.json">~/do-react-example-app/package.json</div><pre class="code-pre  local-environment failing"><span>&#x10102; </span><code langs>
+{
+  &quot;name&quot;: &quot;do-react-example-app&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;private&quot;: true,
+  &quot;dependencies&quot;: {
+    &quot;react&quot;: &quot;^16.2.0&quot;,
+    &quot;react-dom&quot;: &quot;^16.2.0&quot;,
+    &quot;react-scripts&quot;: &quot;1.0.17&quot;
+  },
+  &quot;scripts&quot;: {
+    &quot;start&quot;: &quot;react-scripts start&quot;,
+    &quot;build&quot;: &quot;react-scripts build&quot;,
+    &quot;test&quot;: &quot;react-scripts test --env=jsdom&quot;,
+    &quot;eject&quot;: &quot;react-scripts eject&quot;
+  }
+}
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/do-react-example-app/package.json: Permission denied
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>The <code>package.json</code> file includes the following scripts:  </p>
+
+<ul>
+<li><strong><code>start</code></strong>: This script is responsible for starting the development version of the application. It runs an HTTP server which serves the application.</li>
+<li><strong><code>build</code></strong>: This script is responsible for making the production version of the application. You will use this script on the server.</li>
+<li><strong><code>test</code></strong>: This script runs the default tests associated with the project.</li>
+<li><strong><code>eject</code></strong>: This script is an advanced feature of the <code>create-react-app</code> package. If the developer is not satisfied with the build environment the package offers, it is possible to &#x2018;eject&#x2019; the application, which will produce options that are otherwise unavailable (including things like custom CSS transpilers and JS processing tools). </li>
+</ul>
+
+<p>Close the file when you are finished inspecting the code.</p>
+
+<p>Next, let&#x2019;s create a GitHub repository for the project. You can follow this tutorial on <a href="https://help.github.com/articles/create-a-repo/">creating a GitHub repository</a> for guidance. Take note of the repository&#x2019;s origin (i.e. its GitHub URL).  </p>
+
+<p>Back in your <code><span class="highlight">do-react-example-app</span></code> directory, initialize the repository with <code>git</code>: </p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git init
+</li></ul></code></pre>
+<p>Next, add the remote origin with your GitHub URL:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git remote add origin <span class="highlight">your-github-url</span>
+</li></ul></code></pre>
+<p>Stage all of the files in the project directory:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git add .
+</li></ul></code></pre>
+<p>Commit them:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git commit -m &quot;initial commit&quot;
+</li></ul></code></pre>
+<p>And push them to repository:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git push origin master
+</li></ul></code></pre>
+<p>For more information on creating GitHub repositories and initializing existing applications with <code>git</code>, see GitHub&#x2019;s <a href="https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/">documentation</a>. </p>
+
+<p>Once we have finished the repository setup, we can move on to specifying configuration details on our server. </p>
+
+<h2 id="step-2-&#x2014;-directory-set-up-and-nginx-configuration">Step 2 &#x2014; Directory Set Up and Nginx Configuration</h2>
+
+<p>With the repository in place, it is now possible to pull the application code from GitHub and configure Nginx to serve the application. </p>
+
+<p>Log into your server, go to your home directory, and clone your repository:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cd ~
+</li><li class="line" prefix="$">git clone <span class="highlight">your-github-url</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: fatal: repository &apos;your-github-url&apos; does not exist
+</span><span> exit code: 128</span><span> command output:<br> </span></pre>
+<p>Go to the cloned project:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cd <span class="highlight">do-react-example-app</span>
+</li></ul></code></pre>
+<p>To create a build directory within the project and files for Nginx to serve, you will will need to run the <code>yarn build</code> command. This runs the build script for the project, creating the build directory. This folder includes, among other things, an <code>index.html</code> file, a JavaScript file, and a CSS file. The <code>yarn</code> command will download all of the required node modules for your project:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">yarn &amp;&amp; yarn build
+</li></ul></code></pre>
+<p>Next, let&#x2019;s make a symlink in the <code>/var/www/</code> directory to the <code>~/do-react-example-app</code> directory. This will keep the application in our home directory, while making it available to Nginx to serve from the <code>/var/www</code> directory: </p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ln -s ~/<span class="highlight">do-react-example-app</span> /var/www/<span class="highlight">do-react-example-app</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ln: failed to create symbolic link &apos;/var/www/do-react-example-app&apos;: No such file or directory
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Note that this links to the project directory rather than to the build directory, which changes more frequently. Creating this link can be particularly helpful in scenarios where you are deploying new versions of the application: by creating a link to a stable version, you simplify the process of swapping it out later, as you deploy additional versions. If something goes wrong, you can also revert to a previous version in the same way.  </p>
+
+<p>Some permissions should be set on the symlink so Nginx can serve it properly:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo chmod -R 755 /var/www
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: chmod: cannot access &apos;/var/www&apos;: No such file or directory
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Next, let&#x2019;s configure an Nginx server block to serve the build directory. Make a new server configuration by typing:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nano /etc/nginx/sites-available/<span class="highlight">test-server</span>
+</li></ul></code></pre>
+<p>Copy the following configuration, replacing <code><span class="highlight">your_server_ip_or_domain</span></code> with your IP or domain (if applicable): </p>
+<div class="code-label " title="/etc/nginx/sites-available/test-server">/etc/nginx/sites-available/test-server</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-nginx">server {
+        listen 80;
+
+        root /var/www/<span class="highlight">do-react-example-app</span>/build;
+        index index.html index.htm index.nginx-debian.html;
+
+        server_name <span class="highlight">your_server_ip_or_domain</span>;
+
+        location / {
+                try_files $uri /index.html;
+        }
+}
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /etc/nginx/sites-available/test-server: Permission denied
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>The directives in this file include:</p>
+
+<ul>
+<li><strong><code>listen</code></strong>: The property that configures the server listening port.</li>
+<li><strong><code>root</code></strong>: The path to the folder from which Ngnix will serve files.</li>
+<li><strong><code>index</code></strong>: The file that the server tries to serve first. It will try to serve any of following files from the <code>/var/www/<span class="highlight">do-react-example-app</span>/build</code> directory: <code>index.html</code>, <code>index.htm</code>, <code>index.nginx-debian.html</code>, with priority from first to last.</li>
+<li><strong><code>server_name</code></strong>: The server domain name or IP.</li>
+</ul>
+
+<p>Next, make a symlink in the <code>sites-enabled</code> directory:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ln -s /etc/nginx/sites-available/<span class="highlight">test-server</span> /etc/nginx/sites-enabled/<span class="highlight">test-server</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ln: failed to create symbolic link &apos;/etc/nginx/sites-enabled/test-server&apos;: No such file or directory
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>This will tell Nginx to enable the server block configuration from the <code>sites-available</code>folder.</p>
+
+<p>Check if the configuration is valid:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nginx -t
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: sudo: nginx: command not found
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Finally, restart Nginx to apply the new configuration:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo systemctl restart nginx
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Failed to restart nginx.service: Unit nginx.service not found.
+</span><span> exit code: 5</span><span> command output:<br> </span></pre>
+<p>With these configuration details in place, we can move on to configuring the webhook.</p>
+
+<h2 id="step-3-&#x2014;-installing-and-configuring-webhooks">Step 3 &#x2014; Installing and Configuring Webhooks</h2>
+
+<p>Webhooks are simple HTTP servers that have configurable endpoints called <em>hooks</em>. Upon receiving HTTP requests, webhook servers execute customizable code that adheres to a set of configurable rules. There are already many webhook servers integrated into applications across the internet, including Slack. </p>
+
+<p>The most widely-used implementation of a webhook server is <a href="https://github.com/adnanh/webhook">Webhook</a>, written in Go. We will use this tool to set up our webhook server.</p>
+
+<p>Make sure you are in your home directory on your server: </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">cd ~
+</li></ul></code></pre>
+<p>Then download the <code>webhook</code>: </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">wget https://github.com/adnanh/webhook/releases/download/2.6.6/webhook-linux-amd64.tar.gz
+</li></ul></code></pre>
+<p>Extract it:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">tar -xvf webhook-linux-amd64.tar.gz
+</li></ul></code></pre>
+<p>Make the binary available in your environment by moving it to <code>/usr/local/bin</code>: </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo mv webhook-linux-amd64/webhook /usr/local/bin
+</li></ul></code></pre>
+<p>Last, clean up the downloaded files:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">rm -rf webhook-linux-amd64*
+</li></ul></code></pre>
+<p>Test the availability of <code>webhook</code> in your environment by typing:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">webhook -version
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> webhook version 2.6.5</span></pre>
+<p>The output should display the <code>webhook</code> version:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>webhook version 2.6.5
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> webhook version 2.6.5</span></pre>
+<p>Next, let&#x2019;s set up <code>hooks</code> and <code>scripts</code> folders in the <code>/opt</code>directory, where files for third-party applications usually go. Since the <code>/opt</code> directory is usually owned by <code>root</code>, we can create directories with root privileges and then transfer ownership to the local <code>$USER</code>.</p>
+
+<p>First, create the directories:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo mkdir /opt/scripts
+</li><li class="line" prefix="$">sudo mkdir /opt/hooks
+</li></ul></code></pre>
+<p>Then transfer the ownership to your <code>$USER</code>:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo chown -R $USER:$USER /opt/scripts
+</li><li class="line" prefix="$">sudo chown -R $USER:$USER /opt/hooks
+</li></ul></code></pre>
+<p>Next, let&#x2019;s configure the <code>webhook</code> server by creating a <code>hooks.json</code> file. With <code>nano</code> or your favorite editor, create the <code>hooks.json</code> file in <code>/opt/hooks</code> directory:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano /opt/hooks/hooks.json
+</li></ul></code></pre>
+<p>For the <code>webhook</code> to be triggered when GitHub sends HTTP requests, our file will need a JSON array of rules. These rules consist of the following properties:</p>
+<pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-json">{
+    &quot;id&quot;: &quot;&quot;,
+    &quot;execute-command&quot;: &quot;&quot;,
+    &quot;command-working-directory&quot;: &quot;&quot;,
+    &quot;pass-arguments-to-command&quot;: [],
+    &quot;trigger-rule&quot;: {}
+}
+</code></pre>
+<p>Specifically, these rules define the following information:</p>
+
+<ul>
+<li><strong><code>id</code></strong>: The name of the endpoint the webhook server will serve. We will call this <code><span class="highlight">redeploy-app</span></code>.</li>
+<li><strong><code>execute-command</code></strong>: The path to the script that will be executed when the hook is triggered. In our case, this will be the <code>redeploy.sh</code> script located in <code>/opt/scripts/redeploy.sh</code>.</li>
+<li><strong><code>command-working-directory</code></strong>: The working directory that will be used when executing the command. We will use <code>/opt/scripts</code> because that is where <code>redeploy.sh</code> is located.</li>
+<li><strong><code>pass-arguments-to-command</code></strong>: The parameters passed to the script from the HTTP request. We will pass a commit message, pusher name, and commit id from the payload of the HTTP request. This same information will also be included in your Slack messages. </li>
+</ul>
+
+<p>The <code>/opt/hooks/hooks.json</code> file should include the following information: </p>
+<div class="code-label " title="/opt/hooks/hooks.json">/opt/hooks/hooks.json</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-json">[
+  {
+    &quot;id&quot;: &quot;<span class="highlight">redeploy-app</span>&quot;,
+    &quot;execute-command&quot;: &quot;/opt/scripts/redeploy.sh&quot;,
+    &quot;command-working-directory&quot;: &quot;/opt/scripts&quot;,
+    &quot;pass-arguments-to-command&quot;:
+    [
+      {
+        &quot;source&quot;: &quot;payload&quot;,
+        &quot;name&quot;: &quot;head_commit.message&quot;
+      },
+      {
+        &quot;source&quot;: &quot;payload&quot;,
+        &quot;name&quot;: &quot;pusher.name&quot;
+      },
+      {
+        &quot;source&quot;: &quot;payload&quot;,
+        &quot;name&quot;: &quot;head_commit.id&quot;
+      }
+    ],
+    &quot;trigger-rule&quot;: {}
+  }
+]
+</code></pre>
+<p>The payload of the GitHub HTTP POST request includes the <code>head_commit.message</code>, <code>pusher.name</code>, and <code>head_commit.id</code> properties. When a configured event (like PUSH) happens in your GitHub repository, GitHub will send a POST request with a JSON body containing information about the event. Some examples of those POST payloads can be found in the <a href="https://developer.github.com/v3/activity/events/types/">GitHub Event Types docs</a>.</p>
+
+<p>The last property in the configuration file is the <code>trigger-rule</code> property, which tells the webhook server under which condition the hook will be triggered. If left empty, the hook will always be triggered. In our case, we will configure the hook to be triggered when GitHub sends a POST request to our webhook server. Specifically, it will only be triggered if the GitHub secret (denoted here as <code><span class="highlight">your-github-secret</span></code>) in the HTTP request matches the one in the rule, and the commit happened to the <code>master</code> branch. </p>
+
+<p>Add the following code to define the <code>trigger-rule</code>, replacing <code><span class="highlight">your-github-secret</span></code> with a password of your choosing:</p>
+<pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-json">&#x2026; 
+    &quot;trigger-rule&quot;:
+    {
+      &quot;and&quot;:
+      [
+        {
+          &quot;match&quot;:
+          {
+            &quot;type&quot;: &quot;payload-hash-sha1&quot;,
+            &quot;secret&quot;: &quot;<span class="highlight">your-github-secret</span>&quot;, 
+            &quot;parameter&quot;:
+            {
+              &quot;source&quot;: &quot;header&quot;,
+              &quot;name&quot;: &quot;X-Hub-Signature&quot;
+            }
+          }
+        },
+        {
+          &quot;match&quot;:
+          {
+            &quot;type&quot;: &quot;value&quot;,
+            &quot;value&quot;: &quot;refs/heads/master&quot;,
+            &quot;parameter&quot;:
+            {
+              &quot;source&quot;: &quot;payload&quot;,
+              &quot;name&quot;: &quot;ref&quot;
+            }
+          }
+        }
+      ]
+    }
+  }
+]
+</code></pre>
+<p>In full, <code>/opt/hooks/hooks.json</code> will look like this: </p>
+<div class="code-label " title="/opt/hooks/hooks.json">/opt/hooks/hooks.json</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-json">[
+  {
+    &quot;id&quot;: &quot;<span class="highlight">redeploy-app</span>&quot;,
+    &quot;execute-command&quot;: &quot;/opt/scripts/redeploy.sh&quot;,
+    &quot;command-working-directory&quot;: &quot;/opt/scripts&quot;,
+    &quot;pass-arguments-to-command&quot;:
+    [
+      {
+        &quot;source&quot;: &quot;payload&quot;,  
+        &quot;name&quot;: &quot;head_commit.message&quot;
+      },
+      {
+        &quot;source&quot;: &quot;payload&quot;,
+        &quot;name&quot;: &quot;pusher.name&quot;
+      },
+      {
+        &quot;source&quot;: &quot;payload&quot;,
+        &quot;name&quot;: &quot;head_commit.id&quot;
+      }
+    ],
+    &quot;trigger-rule&quot;:
+    {
+      &quot;and&quot;:
+      [
+        {
+          &quot;match&quot;:
+          {
+            &quot;type&quot;: &quot;payload-hash-sha1&quot;,
+            &quot;secret&quot;: &quot;<span class="highlight">your-github-secret</span>&quot;, 
+            &quot;parameter&quot;:
+            {
+              &quot;source&quot;: &quot;header&quot;,
+              &quot;name&quot;: &quot;X-Hub-Signature&quot;
+            }
+          }
+        },
+        {
+          &quot;match&quot;:
+          {
+            &quot;type&quot;: &quot;value&quot;,
+            &quot;value&quot;: &quot;refs/heads/master&quot;,
+            &quot;parameter&quot;:
+            {
+              &quot;source&quot;: &quot;payload&quot;,
+              &quot;name&quot;: &quot;ref&quot;
+            }
+          }
+        }
+      ]
+    }
+  }
+]
+</code></pre>
+<p>One final configuration item to check is your server&#x2019;s firewall settings. The webhook server will be listening on port <code>9000</code>. This means that if a firewall is running on the server, it will need to allow connections to this port. To see a list of your current firewall rules, type:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ufw status
+</li></ul></code></pre>
+<p>If port <code>9000</code> is not included in the list, enable it: </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ufw allow 9000
+</li></ul></code></pre>
+<p>For more information about <code>ufw</code>, see this introduction to <a href="https://www.digitalocean.com/community/tutorials/ufw-essentials-common-firewall-rules-and-commands">ufw essentials</a>.</p>
+
+<p>Next, let&#x2019;s set up our GitHub repository to send HTTP requests to this endpoint. </p>
+
+<h2 id="step-4-&#x2014;-configuring-github-notifications">Step 4 &#x2014; Configuring GitHub Notifications</h2>
+
+<p>Let&#x2019;s configure our GitHub repository to send HTTP requests when a commit to master happens:</p>
+
+<ul>
+<li>1. Go to your repository and click <strong>Settings</strong>.</li>
+<li>2. Then go to <strong>Webhooks</strong> and click <strong>Add Webhook</strong>, located in top right corner.</li>
+<li>3. For the <strong>Payload URL</strong>, type your server address as follows: <code>http://<span class="highlight">your_server_ip</span>:9000/hooks/<span class="highlight">redeploy-app</span></code>. If you have a domain name, you can use that in place of <code><span class="highlight">your_server_ip</span></code>. Note that the endpoint name matches the <code>id</code> property in the hook definition. This is a detail of webhook implementations: all hooks defined in <code>hooks.json</code> will appear in the URL as <code>http://<span class="highlight">your_server_ip</span>:9000/hooks/<span class="highlight">id</span></code>, where <code><span class="highlight">id</span></code> is the <code>id</code> in <code>hooks.json</code> file. </li>
+<li>4. For <strong>Content type</strong>, choose <strong>application/json</strong>.</li>
+<li>5. For <strong>Secret</strong>, type the secret (<code><span class="highlight">your-github-secret</span></code>) that you set in the <code>hooks.json</code> definition. </li>
+<li>6. For <strong>Which events would you like to trigger this webhook?</strong> select <strong>Just push event</strong>. </li>
+<li>7. Click the <strong>Add webhook</strong> button.</li>
+</ul>
+
+<p>Now when someone pushes a commit to your repository, GitHub will send a POST request with the payload containing information about the commit event. Among other useful properties, it will contain the properties we defined in the trigger rule, so our webhook server can check whether the POST request was valid. If it is, it will contain other info like <code>pusher.name</code>.</p>
+
+<p>The full list of properties sent with payload can be found on the <a href="https://developer.github.com/webhooks/">GitHub Webhooks page</a>.</p>
+
+<h2 id="step-5-&#x2014;-writing-the-deploy-redeploy-script">Step 5 &#x2014; Writing the Deploy/Redeploy Script</h2>
+
+<p>At this point, we have pointed the webhook to the <code>redeploy.sh</code> script, but we haven&#x2019;t created the script itself. It will do the work of pulling the latest master branch from our repository, installing node modules, and executing the build command.</p>
+
+<p>Create the script:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano /opt/scripts/redeploy.sh
+</li></ul></code></pre>
+<p>First, let&#x2019;s add a function to top of the script that will clean up any files it has created. We can also use this as a place to notify third party software like Slack if the redeploy didn&#x2019;t go through successfully:</p>
+<div class="code-label " title="/opt/scripts/redeploy.sh">/opt/scripts/redeploy.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash">#!/bin/bash -e
+
+function cleanup {
+      echo &quot;Error occoured&quot;
+      # <span class="highlight">!!Placeholder for Slack notification</span>
+}
+trap cleanup ERR
+</code></pre>
+<p>This tells the <code>bash</code> interpreter that if the script finished abruptly, it should run the code in the <code>cleanup</code> function. </p>
+
+<p>Next, extract the parameters that <code>webhook</code> passes to the script when executing it:</p>
+<div class="code-label " title="/opt/scripts/redeploy.sh">/opt/scripts/redeploy.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash">&#x2026;
+
+commit_message=$1 # head_commit.message
+pusher_name=$2 # pusher.name
+commit_id=$3 # head_commit.id
+
+
+# <span class="highlight">!!Placeholder for Slack notification</span>
+</code></pre>
+<p>Notice that the order of the parameters corresponds to the <code>pass-arguments-to-command</code> property from the <code>hooks.json</code> file. </p>
+
+<p>Last, let&#x2019;s call the commands necessary for redeploying the application:</p>
+<div class="code-label " title="/opt/scripts/redeploy.sh">/opt/scripts/redeploy.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash">&#x2026;
+
+cd ~/<span class="highlight">do-react-example-app</span>/
+git pull origin master
+yarn &amp;&amp; yarn build
+
+# <span class="highlight">!!Placeholder for Slack notification</span>
+</code></pre>
+<p>The script in full will look like this:</p>
+<div class="code-label " title="/opt/scripts/redeploy.sh">/opt/scripts/redeploy.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash">#!/bin/bash -e
+
+function cleanup {
+      echo &quot;Error occoured&quot;
+      # <span class="highlight">!!Placeholder for Slack notification</span>
+}
+trap cleanup ERR
+
+commit_message=$1 # head_commit.message
+pusher_name=$2 # pusher.name
+commit_id=$3 # head_commit.id
+
+# <span class="highlight">!!Placeholder for Slack notification</span>
+
+cd ~/<span class="highlight">do-react-example-app</span>/
+git pull origin master
+yarn &amp;&amp; yarn build
+
+# <span class="highlight">!!Placeholder for Slack notification</span>
+</code></pre>
+<p>The script will go to the folder, pull the code from latest master branch, install fresh packages, and the build the production version of the application. </p>
+
+<p>Notice the <code><span class="highlight">!!Placeholder for Slack notification</span></code>. This is a placeholder for the last step in this tutorial. Without notifications, there is no real way of knowing if the script executed properly. </p>
+
+<p>Make the script executable so the hook can execute it:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">chmod +x /opt/scripts/redeploy.sh
+</li></ul></code></pre>
+<p>Because Nginx is configured to serve files from <code>/var/www/<span class="highlight">do-react-example-app</span>/build</code>, when this script executes, the build directory will be updated and Nginx will automatically serve new files.</p>
+
+<p>Now we are ready to test the configuration. Let&#x2019;s run the webhook server:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">webhook -hooks /opt/hooks/hooks.json -verbose
+</li></ul></code></pre>
+<p>The <code>-hooks</code> parameter tells <code>webhook</code> the location of the configuration file.</p>
+
+<p>You will see this output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>[webhook] 2017/12/10 13:32:03 version 2.6.5 starting
+[webhook] 2017/12/10 13:32:03 setting up os signal watcher
+[webhook] 2017/12/10 13:32:03 attempting to load hooks from /opt/hooks/hooks.json
+[webhook] 2017/12/10 13:32:03 os signal watcher ready
+[webhook] 2017/12/10 13:32:03 found 1 hook(s) in file
+[webhook] 2017/12/10 13:32:03   loaded: redeploy-app
+[webhook] 2017/12/10 13:32:03 serving hooks on http://0.0.0.0:9000/hooks/{id}
+</code></pre>
+<p>This tells us that everything is loaded properly and that our server is now serving the hook <code><span class="highlight">redeploy-app</span></code> via the URL <code>http://0.0.0.0:9000/hooks/<span class="highlight">redeploy-app</span></code>. This exposes a path or hook on the server that can be executed. If you now do a simple REST call (like GET) with this URL, nothing special will happen because the hook rules were not satisfied. If we want the hook to be triggered successfully, we must fulfill the <code>trigger-rule</code> we defined in <code>hooks.json</code>.</p>
+
+<p>Let&#x2019;s test this with an empty commit in the local project directory. Leaving your webhook server running, navigate back to your local machine and type the following:</p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git commit --allow-empty -m &quot;Trigger notification&quot;
+</li></ul></code></pre>
+<p>Push the commit to the master branch:</p>
+<pre class="code-pre command local-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git push origin master
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>You will see output like this on your server:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>[webhook] 2018/06/14 20:05:55 [af35f1] incoming HTTP request from 192.30.252.36:49554
+[webhook] 2018/06/14 20:05:55 [af35f1] redeploy-app got matched
+[webhook] 2018/06/14 20:05:55 [af35f1] redeploy-app hook triggered successfully
+[webhook] 2018/06/14 20:05:55 200 | 726.412&#xB5;s | 203.0.113.0:9000 | POST /hooks/redeploy-app
+[webhook] 2018/06/14 20:05:55 [af35f1] executing /opt/scripts/redeploy.sh (/opt/scripts/redeploy.sh) with arguments [&quot;/opt/scripts/redeploy.sh&quot; &quot;Trigger notification&quot; &quot;<span class="highlight">sammy</span>&quot; &quot;82438acbf82f04d96c53cd684f8523231a1716d2&quot;] and environment [] using /opt/scripts as cwd
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>Let&#x2019;s now add Slack notifications and look at what happens when the hook triggers a successful build with notifications.</p>
+
+<h2 id="step-6-&#x2014;-adding-slack-notifications">Step 6 &#x2014; Adding Slack Notifications</h2>
+
+<p>To receive Slack notifications when your app is redeployed, you can modify the <code>redeploy.sh</code> script to send HTTP requests to Slack. It&#x2019;s also necessary to configure Slack to receive notifications from your server by enabling the <strong>Webhook Integration</strong> in the Slack configuration panel. Once you have a <strong>Webhook URL</strong> from Slack, you can add information about the Slack webhook server to your script.</p>
+
+<p>To configure Slack, take the following steps:</p>
+
+<ul>
+<li>1. On the main screen of the Slack application, click the dropdown menu located on the top left and choose <strong>Customize Slack</strong>.</li>
+<li>2. Next, go to the <strong>Configure Apps</strong> sections located in the left sidebar <strong>Menu</strong>.</li>
+<li>3. In the <strong>Manage</strong> panel, choose <strong>Custom Integration</strong> from the lefthand list of options.</li>
+<li>4. Search for the <strong>Incoming WebHooks</strong> integration.</li>
+<li>5. Click <strong>Add Configuration</strong>.</li>
+<li>6. Choose an existing channel or create a new one.</li>
+<li>7. Click <strong>Add Incoming WebHooks integration</strong>.</li>
+</ul>
+
+<p>After that, you will be presented with a screen displaying the Slack webhook settings. Make note of the <strong>Webhook URL</strong>, which is the endpoint generated by the Slack webhook server. When you are finished taking note of this URL and making any other changes, be sure to press the <strong>Save Settings</strong> button at the bottom of the page. </p>
+
+<p>Return to your server and open the <code>redeploy.sh</code> script:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano /opt/scripts/redeploy.sh
+</li></ul></code></pre>
+<p>In the previous step, we left placeholders in the script for Slack notifications, denoted as <code><span class="highlight">!!Placeholder for Slack notification</span></code>. We will now replace these with <code>curl</code> calls that make POST HTTP requests to the Slack webhook server. The Slack hook expects the JSON body, which it will then parse, displaying the appropriate notification in the channel.  </p>
+
+<p>Replace the <code><span class="highlight">!!Placeholder for slack notification</span></code> with the following <code>curl</code> calls. Note that you will need to replace <code><span class="highlight">your_slack_webhook_url</span></code> with the <strong>Webhook URL</strong> you noted earlier:</p>
+<div class="code-label " title="/opt/scripts/redeploy.sh">/opt/scripts/redeploy.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code class="code-highlight language-bash">#!/bin/bash -e
+
+function cleanup {
+      echo &quot;Error occoured&quot;
+      curl -X POST -H &apos;Content-type: application/json&apos; --data &quot;{
+              \&quot;text\&quot;: \&quot;Error occoured while building app with changes from ${pusher_name} (${commit_id} -&gt; ${commit_message})\&quot;,
+              \&quot;username\&quot;: \&quot;buildbot\&quot;,
+              \&quot;icon_url\&quot;: \&quot;https://i.imgur.com/JTq5At3.png\&quot;
+      }&quot; <span class="highlight">your_slack_webhook_url</span>
+}
+trap cleanup ERR
+
+commit_message=$1 # head_commit.message
+pusher_name=$2 # pusher.name
+commit_id=$3 # head_commit.id
+
+curl -X POST -H &apos;Content-type: application/json&apos; --data &quot;{
+        \&quot;text\&quot;: \&quot;Started building app with changes from ${pusher_name} (${commit_id} -&gt; ${commit_message})\&quot;,
+        \&quot;username\&quot;: \&quot;buildbot\&quot;,
+        \&quot;icon_url\&quot;: \&quot;https://i.imgur.com/JTq5At3.png\&quot;
+}&quot; <span class="highlight">your_slack_webhook_url</span>
+
+cd ~/do-react-example-app/
+git pull origin master
+yarn &amp;&amp; yarn build
+
+curl -X POST -H &apos;Content-type: application/json&apos; --data &quot;{
+        \&quot;text\&quot;: \&quot;Build and deploy finished with changes from ${pusher_name} (${commit_id} -&gt; ${commit_message})\&quot;,
+        \&quot;username\&quot;: \&quot;buildbot\&quot;,
+        \&quot;icon_url\&quot;: \&quot;https://i.imgur.com/JTq5At3.png\&quot;
+}&quot; <span class="highlight">your_slack_webhook_url</span>
+</code></pre>
+<p>We have replaced each placeholder with a slightly different <code>curl</code> call:</p>
+
+<ul>
+<li>The first ensures that we receive notification of any errors that occurred while executing the script.</li>
+<li>The second sends the notification that the build of the application has started.</li>
+<li>The third sends the notification that the build has successfully finished.</li>
+</ul>
+
+<p>More on Slack bots and integrations can be found in the <a href="https://api.slack.com/incoming-webhooks">Slack webhooks documentation</a>.</p>
+
+<p>Again, we can test our hook with an empty commit in the local project directory. Leaving the webhook server running, navigate back to this directory and create the empty commit: </p>
+<pre class="code-pre command local-environment passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git commit --allow-empty -m &quot;Trigger notification&quot;
+</li></ul></code></pre>
+<p>Push the commit to the master branch to trigger the build: </p>
+<pre class="code-pre command local-environment failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">git push origin master
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>The output, including build information, will look like this: </p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>[webhook] 2018/06/14 20:09:55 [1a67a4] incoming HTTP request from 192.30.252.34:62900
+[webhook] 2018/06/14 20:09:55 [1a67a4] redeploy-app got matched
+[webhook] 2018/06/14 20:09:55 [1a67a4] redeploy-app hook triggered successfully
+[webhook] 2018/06/14 20:09:55 200 | 462.533&#xB5;s | 203.0.113.0:9000 | POST /hooks/redeploy-app
+[webhook] 2018/06/14 20:09:55 [1a67a4] executing /opt/scripts/redeploy.sh (/opt/scripts/redeploy.sh) with arguments [&quot;/opt/scripts/redeploy.sh&quot; &quot;Trigger notification&quot; &quot;<span class="highlight">sammy</span>&quot; &quot;5415869a4f126ccf4bfcf2951bcded69230f85c2&quot;] and environment [] using /opt/scripts as cwd
+[webhook] 2018/06/14 20:10:05 [1a67a4] command output:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   228    0     2  100   226     11   1324 --:--:-- --:--:-- --:--:--  1329
+okFrom https://github.com/<span class="highlight">sammy</span>/do-react-example-app
+ * branch            master     -&gt; FETCH_HEAD
+   82438ac..5415869  master     -&gt; origin/master
+Updating 82438ac..5415869
+Fast-forward
+yarn install v1.7.0
+[1/4] Resolving packages&#x2026;
+success Already up-to-date.
+Done in 1.16s.
+yarn run v1.7.0
+$ react-scripts build
+Creating an optimized production build&#x2026;
+Compiled successfully.
+
+File sizes after gzip:
+
+  36.94 KB  build/static/js/main.a0b7d8d3.js
+  299 B     build/static/css/main.c17080f1.css
+
+The project was built assuming it is hosted at the server root.
+You can control this with the homepage field in your package.json.
+For example, add this to build it for GitHub Pages:
+
+  &quot;homepage&quot; : &quot;http://myname.github.io/myapp&quot;,
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  yarn global add serve
+  serve -s build
+
+Find out more about deployment here:
+
+  http://bit.ly/2vY88Kr
+
+Done in 7.72s.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   233    0     2  100   231     10   1165 --:--:-- --:--:-- --:--:--  1166
+ok
+[webhook] 2018/06/14 20:10:05 [1a67a4] finished handling redeploy-app
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>In Slack, you will receive messages to your channel of choice notifying you that the application build has started and when it has finished. </p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>We have now finished setting up a deployment system using webhooks, Nginx, shell scripts, and Slack. You should now be able to:</p>
+
+<ul>
+<li>Configure Nginx to work with dynamic builds of your application. </li>
+<li>Set up the webhook server and write hooks that trigger on GitHub POST requests.</li>
+<li>Write scripts that trigger application builds and notifications.</li>
+<li>Configure Slack to receive these notifications.</li>
+</ul>
+
+<p>The system from this tutorial can be expanded, since the webhook server is modular and can be configured to work with other applications such as <a href="https://about.gitlab.com/">GitLab</a>. If configuring the webhook server through JSON is too much, you can build a similar setup using <a href="https://www.hookdoo.com">Hookdoo</a>. More information on how to configure trigger rules for <code>webhook</code> can be found on the webhook project <a href="https://github.com/adnanh/webhook/wiki/Hook-Examples">example hooks page</a>. </p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/sanjin">
+            <img alt="sanjin" class="avatar avatar-large" src="../steps/https:/secure.gravatar.com/avatar/5771f218cbffed86da5778f82a4fbb27?secure=true&amp;d=identicon" width="80" height="80">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/sanjin">Sanjin &#x160;ari&#x107;</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors two">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+          <li class="collaborator-byline-avatar">
+            <a href="/community/users/katjuell">
+                <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/748ce760fc8ab2840a415f65ee0d674c24845854.jpg?1509387359" alt="748ce760fc8ab2840a415f65ee0d674c24845854"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>          </li>
+
+
+        <li class="collaborators-byline-data">
+            <p class="names">Editor: <a href="/community/users/katjuell">Kathleen Juell</a></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2658" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04/flag" data-flaggable-id="2658">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=Deploying React Applications with Webhooks and Slack on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04?utm_content=deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04?utm_content=deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=Deploying React Applications with Webhooks and Slack on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04?utm_content=deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">5</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2658);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"Deploying React Applications with Webhooks and Slack on Ubuntu 16.04","headline":"Deploying React Applications with Webhooks and Slack on Ubuntu 16.04","alternativeHeadline":"Deploying React Applications with Webhooks and Slack on Ubuntu ","description":"When a developer is making continuous changes to an application, a deployment system with webhooks can streamline development, particularly for teams. Integrating Slack notifications for code changes into a team's workflow can also be helpful if part of the team relies on back-end software like an API. In this tutorial, you will set up an application with `create-react-app` and configure a webhook deployment system that integrates with GitHub and Slack.\r\n","keywords":"Applications,Deployment,Nginx,June 2018,React","url":"https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/deploying-react-applications-with-webhooks-and-slack-on-ubuntu-16-04"},"dateModified":"2019-05-20T18:23:04Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Sanjin Šarić","@id":"https://www.digitalocean.com/community/users/sanjin"}],"datePublished":"2018-06-20T22:04:50Z","editor":{"@type":"Person","name":"Kathleen Juell","@id":"katjuell"},"image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"16"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"4"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
