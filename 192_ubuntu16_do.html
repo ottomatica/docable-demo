@@ -1,0 +1,477 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>Django Development Environment on Ubuntu and Debian Linux | DigitalOcean</title>
+
+<meta name="description" content="In this tutorial, we will set up a Django development environment. We&#x2019;ll install Python 3, pip 3, Django and virtualenv in order to provide you with the tools necessary for developing web applications with Django.">
+<meta name="keywords" content="Programming Project Development Django Python">
+
+<meta name="og:title" content="Django Development Environment on Ubuntu and Debian Linux | DigitalOcean">
+<meta name="og:description" content="In this tutorial, we will set up a Django development environment. We&#x2019;ll install Python 3, pip 3, Django and virtualenv in order to provide you with the tools necessary for developing web applications with Django.">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Django_development_social.png?1515607861">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="Django Development Environment on Ubuntu and Debian Linux | DigitalOcean">
+<meta name="twitter:description" content="In this tutorial, we will set up a Django development environment. We&#x2019;ll install Python 3, pip 3, Django and virtualenv in order to provide you with the tools necessary for developing web applications with Django.">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Django_development_social.png?1515607861">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="CD6EQHVC5b9tGZWsOiWmt1AOlxW1mxvqI5UC+jlQvIvIZ7308WjdMeNUDnmifQTYUuGksJL660MMLGSTYlWGvg==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2408" data-js="tutorial" data-upvote="null" data-flagged>
+    
+    <h1 class="content-title Tutorial-header">How To Install Django and Set Up a Development Environment on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Updated</span><span class="tutorial-date">April  9, 2018</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">168.7k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/python?type=tutorials">Python</a> <a class="tag" href="/community/tags/django?type=tutorials">Django</a> <a class="dev-tag" href="/community/tags/development?type=tutorials">Development</a> <a class="tag" href="/community/tags/project?type=tutorials">Programming Project</a>
+      <a class="tag" href="/community/tags/debian?type=tutorials">Debian</a> <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/jeremylevanmorris">
+            <img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/6c007aee23f7138e874781cdfdb66d8ab94716fc.jpg?1513221869" alt="6c007aee23f7138e874781cdfdb66d8ab94716fc">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/jeremylevanmorris">Jeremy Morris</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>Django is a free and open-source web framework written in Python that adheres to the <strong>model template view (MTV)</strong> software architectural pattern. The MTV pattern is Django&#x2019;s take on the <a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">model&#x2013;view&#x2013;controller (MVC)</a> pattern. According to the Django Software Foundation, the <em>model</em> is the single definitive source of your data, the <em>view</em> describes the data that gets represented to the user via a Python callback <a href="https://www.digitalocean.com/community/tutorials/how-to-define-functions-in-python-3">function</a> to a specific URL, and the <em>template</em> is how Django generates HTML dynamically.</p>
+
+<p>Django&#x2019;s core principles are scalability, re-usability and rapid development. It is also known for its framework-level consistency and loose coupling, allowing for individual components to be independent of one another. Don&#x2019;t repeat yourself (<a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself">DRY programming</a>) is an integral part of Django principles.</p>
+
+<p>In this tutorial, we will set up a Django development environment. We&#x2019;ll install Python 3, pip 3, Django and <code>virtualenv</code> in order to provide you with the tools necessary for developing web applications with Django.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>A non-root user account with <code>sudo</code> privileges set up on a Debian or Ubuntu Linux server. You can achieve these prerequisites by following and completing the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-debian-8">initial server setup for Debian 8</a>, or steps 1-4 in the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">initial server setup for Ubuntu 16.04</a> tutorial.</p>
+
+<h2 id="step-1-&#x2014;-install-python-and-pip">Step 1 &#x2014; Install Python and pip</h2>
+
+<p>To install Python we must first update the local APT repository. In your terminal window, we&#x2019;ll input the command that follows. Note that the <code>-y</code> flag answers &#x201C;yes&#x201D; to prompts during the upgrade process. Remove the flag if you&#x2019;d like the upgrade to stop for each prompt.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get update &amp;&amp; sudo apt-get -y upgrade
+</li></ul></code></pre>
+<p>When prompted to configure <code>grub-pc</code>, you can press <code>ENTER</code> to accept the default, or configure as desired.</p>
+
+<p>It is recommended by the Django Software Foundation to use Python 3, so once everything is updated, we can install Python 3 by using the following command:    </p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install python3
+</li></ul></code></pre>
+<p>To verify the successful installation of Python 3, run a version check with the  <strong>python3</strong> command:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">python3 -V
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Python 3.5.2</span></pre>
+<p>The resulting output will look similar to this:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>python <span class="highlight">3.5.2</span>
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> Python 3.5.2</span></pre>
+<p>Now that we have Python 3 installed, we will also need <strong>pip</strong> in order to install packages from PyPi, Python&#x2019;s package repository.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo apt-get install -y python3-pip
+</li></ul></code></pre>
+<p>To verify that pip was successfully installed, run the following command:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">pip3 -V
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> pip 8.1.1 from /usr/lib/python3/dist-packages (python 3.5)</span></pre>
+<p>You should see output similar to this:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>pip <span class="highlight">8.1.1</span> from /usr/lib/python3/dist-packages (python <span class="highlight">3.5</span>)
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> pip 8.1.1 from /usr/lib/python3/dist-packages (python 3.5)</span></pre>
+<p>Now that we have pip installed, we have the ability to quickly install other necessary packages for a Python environment.</p>
+
+<h2 id="step-2-&#x2014;-install-virtualenv">Step 2 &#x2014; Install virtualenv</h2>
+
+<p><strong>virtualenv</strong> is a <a href="https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-16-04-server#step-2-%E2%80%94-setting-up-a-virtual-environment">virtual environment</a> where you can install software and Python packages in a contained development space, which isolates the installed software and packages from the rest of your machine&#x2019;s global environment. This convenient isolation prevents conflicting packages or software from interacting with each other.</p>
+
+<p>To install virtualenv, we will use the <strong>pip3</strong> command, as shown below:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">pip3 install virtualenv
+</li></ul></code></pre>
+<p>Once it is installed, run a version check to verify that the installation has completed successfully:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">virtualenv --version
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: virtualenv: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>We should see the following output, or something similar:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div><span class="highlight">15.1.0</span>
+</code><br><br><span>&#xFE0F;&#x2755;error: bash: virtualenv: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You have successfully installed <strong>virtualenv</strong>. </p>
+
+<p>At this point, we can isolate our Django web application and its associated software dependencies from other Python packages or projects on our system.</p>
+
+<h2 id="step-3-&#x2014;-install-django">Step 3 &#x2014; Install Django</h2>
+
+<p>There are three ways to install Django. We will be using the pip method of installation for this tutorial, but let&#x2019;s address all of the available options for your reference.</p>
+
+<ul>
+<li><p><strong>Option 1: Install Django within a <code>virtualenv</code>.</strong><br>
+This is ideal for when you need your version of Django to be isolated from the global environment of your server.</p></li>
+<li><p><strong>Option 2: Install Django from Source.</strong><br>
+If you want the latest software or want something newer than what your Ubuntu APT repository offers, you can install directly from source. Note that opting for this installation method requires constant attention and maintenance if you want your version of the software to be up to date.</p></li>
+<li><p><strong>Option 3: Install Django Globally with pip.</strong><br>
+The option we are going with is pip 3 as we will be installing Django globally. </p></li>
+</ul>
+
+<p>We&#x2019;ll be installing Django using pip within a virtual environment. For further guidance and information on the setup and utilization of programming environments, check out this tutorial on <a href="https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-16-04-server">setting up a virtual environment</a>.</p>
+
+<p>While in the server&#x2019;s home directory, we have to create the directory that will contain our Django application. Run the following command to create a directory called <span class="highlight"><code>django-apps</code></span>, or another name of your choice. Then navigate to the directory.</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">mkdir <span class="highlight">django-apps</span>
+</li><li class="line" prefix="$">cd <span class="highlight">django-apps</span> 
+</li></ul></code></pre>
+<p>While inside the  <span class="highlight"><code>django-apps</code></span> directory, create your virtual environment.  Let&#x2019;s call it <span class="highlight"><code>env</code></span>.</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">virtualenv <span class="highlight">env</span>
+</li></ul></code></pre>
+<p>Now, activate the virtual environment with the following command:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">. env/bin/activate
+</li></ul></code></pre>
+<p>You&#x2019;ll know it&#x2019;s activated once the prefix is changed to <span class="highlight"><code>(env)</code></span>, which will look similar to the following depending on what directory you are in:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">
+</li></ul></code></pre>
+<p>Within the environment, install the Django package using pip. Installing Django allows us to create and run Django applications. To learn more about Django, read our tutorial series on <a href="https://www.digitalocean.com/community/tutorial_series/django-development">Django Development</a>.</p>
+<pre class="code-pre custom_prefix failing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">pip install django
+</li></ul></code>
+<span>️❕error: </span>
+<span> exit code: 127</span>
+<span> command output: The program 'pip' is currently not installed. To run 'pip' please ask your administrator to install the package 'python-pip'<br> </span>
+</pre>
+<p>Once installed, verify your Django installation by running a version check:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">django-admin --version
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 127</span><span> command output: The program 'django-admin' is currently not installed. To run 'django-admin' please ask your administrator to install the package 'python-django-common'<br> </span></pre>
+<p>This, or something similar, will be the resulting output:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div><span class="highlight">2.0.1</span>
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 127</span><span> command output: The program 'django-admin' is currently not installed. To run 'django-admin' please ask your administrator to install the package 'python-django-common'<br> </span></pre>
+<p>With Django installed on your server, we can move on to creating a test project to make sure everything is working correctly. </p>
+
+<h2 id="step-4-&#x2014;-creating-a-django-test-project">Step 4 &#x2014; Creating a Django Test Project</h2>
+
+<p>To test the Django installation, we will be creating a skeleton web application.</p>
+
+<h3 id="setting-firewall-rules">Setting Firewall Rules</h3>
+
+<p>First, if applicable, we&#x2019;ll need to open the port we&#x2019;ll be using in our server&#x2019;s firewall. If you are using UFW (as detailed in the <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04#step-seven-%E2%80%94-set-up-a-basic-firewall">initial server setup guide</a>), you can open the port with the following command:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">sudo ufw allow 8000
+</li></ul></code></pre>
+<p>If you&#x2019;re using DigitalOcean Firewalls, you can select <code>HTTP</code> from the inbound rules. You can read more about DigitalOcean Firewalls and creating rules for them by reading the <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-digitalocean-cloud-firewalls#creating-new-inbound-rules-from-presets">inbound rules section of the introductory tutorial</a>. </p>
+
+<h3 id="starting-the-project">Starting the Project</h3>
+
+<p>We now can generate an application using <code>django-admin</code>, a command line utility for administration tasks in Python. Then we can use the <code>startproject</code> command to create the project directory structure for our test website.</p>
+
+<p>While in the <code>django-apps</code> directory, run the following command:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">django-admin startproject testsite
+</li></ul></code>
+<span>️❕error: </span>
+<span> exit code: 127</span>
+<span> command output: The program 'django-admin' is currently not installed. To run 'django-admin' please ask your administrator to install the package 'python-django-common'<br> </span>
+</pre>
+<p><span class="note"><strong>Note:</strong> Running the <code>django-admin startproject <span class="highlight">&lt;projectname&gt;</span></code> command will name both project directory and project package the <code><span class="highlight">&lt;projectname&gt;</span></code> and create the project in the directory in which the command was run. If the optional <code><span class="highlight">&lt;destination&gt;</span></code> parameter is provided, Django will use the provided destination directory as the project directory, and create <code>manage.py</code> and the project package within it.<br></span></p>
+
+<p>Now we can look to see what project files were just created. Navigate to the <code>testsite</code> directory then list the contents of that directory to see what files were created:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">cd testsite
+</li></ul></code><br><br></pre><pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">ls
+</li></ul></code></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>manage.py  testsite
+</code></pre>
+<p>You will notice output that shows this directory contains a file named <code>manage.py</code> and a folder named <code>testsite</code>. The <code>manage.py</code> file is similar to <code>django-admin</code> and puts the project&#x2019;s package on <code>sys.path</code>. This also sets the <code>DJANGO_SETTINGS_MODULE</code> environment variable to point to your project&#x2019;s <code>settings.py</code> file.</p>
+
+<p>You can view the <code>manage.py</code> script in your terminal by running the <code>less</code> command like so:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">less manage.py
+</li></ul></code></pre>
+<p>When you&#x2019;re finished reading the script, press <code>q</code>, to quit viewing the file.</p>
+
+<p>Now navigate to the <code>testsite</code> directory to view the other files that were created:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">cd testsite/
+</li></ul></code></pre>
+<p>Then run the following command to list the contents of the directory:</p>
+<pre class="code-pre custom_prefix failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">ls
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>You will see four files:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>__init__.py  settings.py  urls.py  wsgi.py
+</code><br><br><span>&#xFE0F;&#x2755;error: </span><span> exit code: 0</span><span> command output:<br> </span></pre>
+<p>Let&#x2019;s go over what each of these files are:</p>
+
+<ul>
+<li><code>__init__.py</code> acts as the entry point for your Python project.</li>
+<li><code>settings.py</code> describes the configuration of your Django installation and lets Django know which settings are available.</li>
+<li><code>urls.py</code> contains a <code>urlpatterns</code> list, that routes and maps URLs to their <code>views</code>.</li>
+<li><code>wsgi.py</code> contains the configuration for the Web Server Gateway Interface. The Web Server Gateway Interface (<a href="https://nl.wikipedia.org/wiki/Web_Server_Gateway_Interface">WSGI</a>) is the Python platform standard for the deployment of web servers and applications.</li>
+</ul>
+
+<p><span class="note"><strong>Note:</strong> Although a default file was generated, you still have the ability to tweak the <code>wsgi.py</code> at any time to fit your deployment needs.<br></span></p>
+
+<h3 id="start-and-view-your-website">Start and View your Website</h3>
+
+<p>Now we can start the server and view the website on a designated host and port by running the <code>runserver</code> command.</p>
+
+<p>We&#x2019;ll need to add your server ip address to the list of <code>ALLOWED_HOSTS</code> in the <code>settings.py</code> file located in <code>~/test_django_app/testsite/testsite/</code>.</p>
+
+<p>As stated in the <a href="https://docs.djangoproject.com/en/2.0/ref/settings/">Django docs</a>, the <code>ALLOWED_HOSTS</code> variable contains &#x201C;a list of strings representing the host/domain names that this Django site can serve. This is a security measure to prevent HTTP Host header attacks, which are possible even under many seemingly-safe web server configurations.&#x201D;</p>
+
+<p>You can use your favorite text editor to add your ip address. For example, if you&#x2019;re using <code>nano</code>, just simply run the following command:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">nano ~/django-apps/testsite/testsite/settings.py
+</li></ul></code></pre>
+<p>Once you run the command, you&#x2019;ll want to navigate to the Allowed Hosts Section of the document and add your server&#x2019;s IP address inside the square brackets within single or double quotes.</p>
+<div class="code-label " title="settings.py">settings.py</div><pre class="code-pre  failing"><span>&#x10102; </span><code class="code-highlight language-python">&quot;&quot;&quot;
+Django settings for testsite project.
+
+Generated by &apos;django-admin startproject&apos; using Django 2.0.
+&#x2026;
+&quot;&quot;&quot;
+&#x2026;
+# SECURITY WARNING: don&apos;t run with debug turned on in production!
+DEBUG = True
+
+# Edit the line below with your server IP address
+ALLOWED_HOSTS = [&apos;<span class="highlight">your-server-ip</span>&apos;]
+&#x2026;
+</code><br><br><span>&#xFE0F;&#x2755;error: tee: /home/vagrant/django-apps/testsite/testsite/settings.py: Permission denied
+</span><span> exit code: undefined</span><span> command output:<br> undefined</span></pre>
+<p>You can save the change and exit nano by holding down the <code>CTRL</code> + <code>x</code> keys and then pressing the <code>y</code> key.</p>
+
+<p>With this completed, be sure to navigate back to the directory where <code>manage.py</code> is located:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">cd ~/django-apps/testsite/
+</li></ul></code></pre>
+<p>Now, run the following command replacing the <span class="highlight">your-server-ip</span> text with the IP of your server:</p>
+<pre class="code-pre custom_prefix passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="(env) sammy@ubuntu:$">python manage.py runserver <span class="highlight">your-server-ip</span>:8000
+</li></ul></code></pre>
+<p>Finally, you can navigate to the below link to see what your skeleton website looks like, again replacing the highlighted text with your server&#x2019;s actual IP:</p>
+<pre class="code-pre url"><code langs>http://<span class="highlight">your-server-ip</span>:8000/
+</code></pre>
+<p>Once the page loads, you&#x2019;ll see the following:</p>
+
+<p><img src="../steps/https:/assets.digitalocean.com/articles/eng_python/django/django-2-testsite.png" alt="Django Default Page"></p>
+
+<p>This confirms that Django was properly installed and our test project is working correctly. </p>
+
+<p>When you are done with testing your app, you can press <code>CTRL</code> + <code>C</code> to stop the <code>runserver</code> command. This will return you to the your programming environment.</p>
+
+<p>When you are ready to leave your Python environment, you can run the <code>deactivate</code> command:</p>
+<pre class="code-pre custom_prefix passing"><span>✓  </span><code langs><ul class="prefixed"><li class="line" prefix="(my_env) sammy@ubuntu:$">deactivate
+</li></ul></pre>
+<p>Deactivating your programming environment will put you back to the terminal command prompt. </p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this tutorial you have successfully upgraded to the latest version of Python 3 available to you via the Ubuntu APT repository. You&#x2019;ve also installed pip 3, <code>virtualenv</code>, and <code>django</code>. </p>
+
+<p>You now have the tools needed to get started building Django web applications.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/jeremylevanmorris">
+            <img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/6c007aee23f7138e874781cdfdb66d8ab94716fc.jpg?1513221869" alt="6c007aee23f7138e874781cdfdb66d8ab94716fc">
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/jeremylevanmorris">Jeremy Morris</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors two">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+          <li class="collaborator-byline-avatar">
+            <a href="/community/users/ltagliaferri">
+                <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/ffa3a896bbd3fc75f231ac932be44d6bf6969478.png?1471283468" alt="Ffa3a896bbd3fc75f231ac932be44d6bf6969478"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>          </li>
+
+
+        <li class="collaborators-byline-data">
+            <p class="names">Editor: <a href="/community/users/ltagliaferri">Lisa Tagliaferri</a></p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2408" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04/flag" data-flaggable-id="2408">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Install Django and Set Up a Development Environment on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04?utm_content=how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04?utm_content=how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Install Django and Set Up a Development Environment on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04?utm_content=how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">33</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2408);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Install Django and Set Up a Development Environment on Ubuntu 16.04","headline":"How To Install Django and Set Up a Development Environment on Ubuntu 16.04","alternativeHeadline":"Django Development Environment on Ubuntu and Debian Linux","description":"In this tutorial, we will set up a Django development environment. We’ll install Python 3, pip 3, Django and virtualenv in order to provide you with the tools necessary for developing web applications with Django.","keywords":"Python,Django,Development,Programming Project","url":"https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-install-django-and-set-up-a-development-environment-on-ubuntu-16-04"},"dateModified":"2018-04-09T18:44:24Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Jeremy Morris","@id":"https://www.digitalocean.com/community/users/jeremylevanmorris"}],"datePublished":"2017-07-31T20:57:45Z","editor":{"@type":"Person","name":"Lisa Tagliaferri","@id":"ltagliaferri"},"image":{"@type":"ImageObject","url":"https://community-cdn-digitalocean-com.global.ssl.fastly.net/assets/tutorials/images/large/Django_development_social.png?1515607861","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"36"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"18"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
