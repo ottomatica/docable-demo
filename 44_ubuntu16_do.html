@@ -1,0 +1,491 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04 | DigitalOcean</title>
+
+<meta name="description" content="DigitalOcean Spaces is an object storage service that is compatible with the S3 API. In this tutorial we will show you how to use Nginx to proxy requests for objects on your Space....">
+<meta name="keywords" content="Object Storage Solutions">
+
+<meta name="og:title" content="How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04 | DigitalOcean">
+<meta name="og:description" content="DigitalOcean Spaces is an object storage service that is compatible with the S3 API. In this tutorial we will show you how to use Nginx to proxy requests for objects on your Space....">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04 | DigitalOcean">
+<meta name="twitter:description" content="DigitalOcean Spaces is an object storage service that is compatible with the S3 API. In this tutorial we will show you how to use Nginx to proxy requests for objects on your Space....">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="XAa+WhAH/u+2SipG6KLJeRRNLs2Xh8zqFlUS2szo7kRQn/5A/Ln9la8m8RoenfcEGn0rzBhaMHN96jv4EN3CFg==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2495" data-js="tutorial" data-upvote="null" data-flagged>
+    
+
+  <div class="container tutorial-header">
+    
+
+
+
+
+    <h1 class="content-title Tutorial-header">How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">December  1, 2017</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">18.1k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/object-storage?type=tutorials">Object Storage</a> <a class="tag" href="/community/tags/solutions?type=tutorials">Solutions</a>
+      <a class="tag" href="/community/tags/ubuntu?type=tutorials">Ubuntu</a> <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/bboucheron">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/da25db4890885df62c1bfb6afdb4c91cb3b4bca5.jpg?1491343657" alt="Da25db4890885df62c1bfb6afdb4c91cb3b4bca5"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/bboucheron">Brian Boucheron</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <span class="note"><p>
+<strong>Note:</strong> In the time since this tutorial was published, DigitalOcean Spaces has added a free CDN option with customizable endpoint subdomains. This CDN feature provides most of the functionality that is covered below, including caching, custom domains, SSL, and moving assets closer to your users.</p>
+
+<p>Please read the <a href="https://www.digitalocean.com/docs/spaces/">official Spaces product documentation</a> for information on how to <a href="https://www.digitalocean.com/docs/spaces/how-to/enable-cdn/">enable the CDN</a> and <a href="https://www.digitalocean.com/docs/spaces/how-to/customize-cdn-endpoint/">customize the CDN endpoint</a>.<br></p></span>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>DigitalOcean Spaces is an <a href="https://www.digitalocean.com/community/tutorials/object-storage-vs-block-storage-services">object storage</a> service that is compatible with the S3 API. In this tutorial we will show you how to use Nginx to proxy requests for objects on your Space. Nginx will receive HTTP(S) requests from your users and pass them along to the Spaces service, which will send the results back through Nginx.</p>
+
+<p>Some reasons you may want to put an Nginx proxy in front of Spaces is to:</p>
+
+<ul>
+<li>add a custom domain</li>
+<li>add your own caching</li>
+<li>use your own SSL certificate</li>
+<li>use different access control mechanisms</li>
+<li>cache assets in a datacenter that&#x2019;s closer to your users</li>
+</ul>
+
+<p>In this tutorial, we will set up Nginx to answer requests on our own domain (with optional Let&#x2019;s Encrypt SSL certificates) and forward those requests to a Space with <em>public</em> assets. We&#x2019;ll then add caching to speed up subsequent responses for frequently-accessed objects.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>To complete this tutorial, you should have the following:</p>
+
+<ul>
+<li>An Ubuntu 16.04 server with Nginx installed, as explained in our tutorial <a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04">How To Install Nginx on Ubuntu 16.04</a></li>
+<li>A domain name pointed to your server, as per <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-a-host-name-with-digitalocean">How to Set Up a Host Name with DigitalOcean</a>. We will use <strong>assets.example.com</strong> throughout this tutorial</li>
+<li><p>A DigitalOcean Space. You can learn how to create a new Space by reading <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-digitalocean-spaces">An Introduction to DigitalOcean Spaces</a>.</p>
+
+<p>You&#x2019;ll need to know the URL of your individual Space. You can find that by navigating to your Space in the DigitalOcean Control Panel. The URL is directly below the Space name in the UI. This is highlighted in the screenshot below:</p>
+
+<p><img src="../steps/https:/assets.digitalocean.com/articles/proxy-spaces/space-shot.png" alt="DigitalOcean Spaces UI with the Space&apos;s URL highlighted. The URL is directly beneath the name of the Space in the UI&apos;s header"></p>
+
+<p>You&#x2019;ll also need a file uploaded to your Space to test things out with. The aforementioned Spaces article shows how you can upload files using the Spaces web GUI. We&#x2019;ll use <code>example.png</code> for this tutorial.</p></li>
+</ul>
+
+<h2 id="setting-up-the-proxy">Setting Up the Proxy</h2>
+
+<p>A default install of Nginx on Ubuntu will return a <strong>Welcome to Nginx</strong> placeholder page for all requests. We need to add some new configuration to tell Nginx to do something else with requests to our domain.</p>
+
+<p>To do so, open up a new configuration file in <code>/etc/nginx/sites-available</code>:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nano /etc/nginx/sites-available/<span class="highlight">assets.example.com</span>
+</li></ul></code></pre>
+<p>This will open up a blank file in the <code>nano</code> text editor. Paste in the following configuration, making sure to replace the highlighted portions with your own domain name and Spaces URL:</p>
+<div class="code-label " title="/etc/nginx/sites-available/assets.example.com">/etc/nginx/sites-available/assets.example.com</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>server {
+    listen 80;
+    listen [::]:80;
+    server_name <span class="highlight">assets.example.com</span>;
+
+    location / {
+        proxy_pass <span class="highlight">https://example.nyc3.digitaloceanspaces.com/</span>;
+        proxy_hide_header      Strict-Transport-Security;
+    }
+}
+</code></pre>
+<p>Save the file and quit the editor when you&#x2019;re done. This is a standard Nginx <code>server</code> block. First we tell it to listen to port <code>80</code> on both IPv4 and IPv6, and specify the <code>server_name</code> that Nginx should respond to.</p>
+
+<p>Next we create a <code>location</code> block. Any configuration directives within this block (between the <code>{</code> and <code>}</code> braces) will only apply to specific URLs. In this case, we specify <code>/</code>, the root URL, so all locations will be matched by this block.</p>
+
+<p>The <code>proxy_pass</code> directive tells Nginx to pass requests along to the specified server. The <code>proxy_hide_header</code> line strips the <code>Strict-Transport-Security</code> header before passing the response back to the client. Spaces uses this header to force all connections over to HTTPS. Passing this header through to your users could have unintended consequences if your site is accessible on both HTTP and HTTPS connections.</p>
+
+<p>Now that our configuration is set, we need to enable it. This is done by creating a link to the configuration file in the <code>/etc/nginx/sites-enabled/</code> directory:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo ln -s /etc/nginx/sites-available/<span class="highlight">assets.example.com</span> /etc/nginx/sites-enabled/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ln: target &apos;/etc/nginx/sites-enabled/&apos; is not a directory: No such file or directory
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>To check our configuration syntax, run <code>nginx -t</code> as root:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nginx -t
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: sudo: nginx: command not found
+</span><span> exit code: 1</span><span> command output:<br> </span></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+</code></pre>
+<p>Finally, reload Nginx to pick up the new configuration:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo systemctl reload nginx
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: Failed to reload nginx.service: Unit nginx.service not found.
+</span><span> exit code: 5</span><span> command output:<br> </span></pre>
+<p>With our configuration file set up, let&#x2019;s test the proxy.</p>
+
+<h3 id="testing-the-proxy">Testing the Proxy</h3>
+
+<p>We can test the proxy connection using <code>curl</code> on the command line. <code>curl -I</code> will return only the HTTP headers of a response. This is enough to determine that things are working well.</p>
+
+<p>First, fetch an object directly from your Space using the <strong>digitaloceanspaces.com</strong> URL. We&#x2019;ll use our <code>example.png</code> file:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl -I <span class="highlight">https://example.nyc3.digitaloceanspaces.com/example.png</span>
+</li></ul></code></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>HTTP/1.1 200 OK
+Content-Length: 81173
+Accept-Ranges: bytes
+Last-Modified: Tue, 28 Nov 2017 21:19:37 GMT
+ETag: &quot;7b2d05a5bd1bfeebcac62990daeafd14&quot;
+x-amz-request-id: tx000000000000000002398-005a1edfcd-afba2-nyc3a
+Content-Type: image/png
+Date: Wed, 29 Nov 2017 16:26:53 GMT
+Strict-Transport-Security: max-age=15552000; includeSubDomains; preload
+</code></pre>
+<p>We can see by the <code>200 OK</code> on the first line of the output that this was a successful request. The server returned the size of the file (<code>Content-Length</code>), the file type (<code>Content-Type</code>) and some other date- and cache-related information.</p>
+
+<p>Now fetch the same file through the proxy:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl -I <span class="highlight">http://assets.example.com/example.png</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: assets.example.com
+</span><span> exit code: 6</span><span> command output:<br> </span></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>HTTP/1.1 200 OK
+<span class="highlight">Server: nginx/1.10.3 (Ubuntu)</span>
+Date: Wed, 29 Nov 2017 16:27:24 GMT
+Content-Type: image/png
+Content-Length: 81173
+Connection: keep-alive
+Accept-Ranges: bytes
+Last-Modified: Tue, 28 Nov 2017 21:19:37 GMT
+ETag: &quot;7b2d05a5bd1bfeebcac62990daeafd14&quot;
+x-amz-request-id: tx00000000000000000a045-005a1edfec-a89a3-nyc3a
+</code></pre>
+<p>The response is mostly the same. The major change is a <code>Server</code> header that identifies Nginx. If your output is similar, your proxy is working correctly!</p>
+
+<p>In the next step, we&#x2019;ll set up caching to reduce bandwidth use between the proxy and Spaces, and to speed up response times.</p>
+
+<h2 id="setting-up-caching">Setting Up Caching</h2>
+
+<p>To cache responses, Nginx needs a place to store keys, metadata, and the actual response content. We&#x2019;ll set up a cache directory in the system&#x2019;s <code>/tmp</code> directory. To do so, we&#x2019;ll add a configuration snippet to a new file in <code>/etc/nginx/conf.d/</code>. Open that file now:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nano /etc/nginx/conf.d/example-cache.conf
+</li></ul></code></pre>
+<p>Paste in the following line, then save and close the file:</p>
+<div class="code-label " title="/etc/nginx/conf.d/example-cache.conf">/etc/nginx/conf.d/example-cache.conf</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>proxy_cache_path /tmp/example-cache/ levels=1:2 keys_zone=example-cache:16m max_size=10g inactive=60m use_temp_path=off;
+</code></pre>
+<p>This line defines a few characteristics of the cache. Let&#x2019;s run through the options:</p>
+
+<ul>
+<li><code>/tmp/example-cache/</code> is the path to the cache.</li>
+<li><code>levels=1:2</code> sets up a two-level hierarchy of directories to store cached content. Putting too many files in a single directory can cause speed and reliability issues, so Nginx will split files between multiple directories based on this option.</li>
+<li><code>keys_zone=example-cache:16m</code> names our cache and sets up 16 megabytes of memory to store keys in. This should be enough memory to store data for over 100,000 keys.</li>
+<li><code>max_size=10g</code> limits the size of the cache to 10 gigabytes. You can adjust this to suit your storage and usage needs.</li>
+<li><code>inactive=60m</code> means Nginx will delete cached files after 60 minutes if they haven&#x2019;t been accessed in that time (even if the file is still valid and unexpired). If you have a lot of infrequently-accessed objects, you may want to try increasing this.</li>
+<li><code>use_temp_path=off</code> instructs Nginx to write temporary files to the cache directory, potentially avoiding the need to copy files between filesystems, which could hinder performance.</li>
+</ul>
+
+<p>Now that we&#x2019;ve defined a cache, we need to enable it in our server block, and set some additional options. Open up your site&#x2019;s config file again:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nano /etc/nginx/sites-available/<span class="highlight">assets.example.com</span>
+</li></ul></code></pre>
+<p>Add the following to the end of your <code>location /</code> block (after the <code>proxy_hide_header</code> directive, but before the closing <code>}</code> bracket):</p>
+<div class="code-label " title="/etc/nginx/sites-available/assets.example.com">/etc/nginx/sites-available/assets.example.com</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>. . .
+        proxy_cache            example-cache;
+        proxy_cache_valid      200 60m;
+        proxy_cache_use_stale  error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_revalidate on;
+        proxy_cache_lock       on;
+
+        proxy_ignore_headers   Set-Cookie;
+        add_header             X-Cache-Status $upstream_cache_status;
+. . .
+</code></pre>
+<p>Save and close the file. Let&#x2019;s go through these configuration options one-by-one:</p>
+
+<ul>
+<li><code>proxy_cache</code> tells Nginx which cache to use. In this case we specify <code>example-cache</code>, which we just set up in the <code>example-cache.conf</code> file.</li>
+<li><code>proxy_cache_valid</code> instructs Nginx to consider any <code>200</code> response valid for 60 minutes. This means that after the proxy successfully fetches a file from Spaces, for the next 60 minutes Nginx will use the cached copy without ever asking Spaces for an update. Note that if your objects have a <code>Cache-Control</code> header set, the header&#x2019;s value will override this configuration.</li>
+<li><code>proxy_cache_use_stale</code> allows Nginx to return a stale (expired) response if the Spaces server ever times out, returns an error, or if the cached response is in the process of being updated.</li>
+<li><code>proxy_cache_revalidate</code> enables the proxy to revalidate cached files using <em>conditional GET</em> requests. This means that when a cached file expires, and Nginx needs to check Spaces for changes, Nginx will use the <code>If-Modified-Since</code> or <code>If-None-Match</code> headers to only fetch the object if it has indeed changed. If it hasn&#x2019;t been updated, Spaces will return a <code>304 Not Modified</code> response and Nginx will simply mark the existing cached response as valid again.</li>
+<li><code>proxy_cache_lock</code> puts a hold on subsequent requests to an object when the proxy is already fetching it from the backend server. When the first request is complete, the other requests will then be served from the cache.</li>
+<li><code>proxy_ignore_headers Set-Cookie</code> ignores cookies, which can interfere with caching.</li>
+<li><code>add_header X-Cache-Status&#x2026;</code> adds a header with information about whether or not the request was served from the cache (<code>HIT</code>) or not (<code>MISS</code>). If the request was in the cache but was expired, you&#x2019;ll see (<code>REVALIDATED</code>) instead.</li>
+</ul>
+
+<p>We&#x2019;re now ready to verify that our configuration has no errors, and if that&#x2019;s successful, reload Nginx:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo nginx -t
+</li><li class="line" prefix="$">sudo systemctl reload nginx
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: sudo: nginx: command not found
+Failed to reload nginx.service: Unit nginx.service not found.
+</span><span> exit code: 5</span><span> command output:<br> </span></pre>
+<p>With caching set up, we can test again to make sure that the cache is working as expected.</p>
+
+<h3 id="testing-the-cache">Testing the Cache</h3>
+
+<p>To make sure the cache is working, we can use <code>curl</code> again, and look for the <code>X-Cache-Status</code> header:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl -I <span class="highlight">http://assets.example.com/example.png</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: assets.example.com
+</span><span> exit code: 6</span><span> command output:<br> </span></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>HTTP/1.1 200 OK
+Server: nginx/1.10.3 (Ubuntu)
+Date: Wed, 29 Nov 2017 18:40:28 GMT
+Content-Type: image/png
+Content-Length: 81173
+Connection: keep-alive
+Last-Modified: Tue, 28 Nov 2017 21:19:37 GMT
+ETag: &quot;7b2d05a5bd1bfeebcac62990daeafd14&quot;
+x-amz-request-id: tx000000000000000013841-005a1eff1b-a89e4-nyc3a
+<span class="highlight">X-Cache-Status: MISS</span>
+Accept-Ranges: bytes
+</code></pre>
+<p>The first request should be a <code>MISS</code>. Try it a second time:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">curl -I <span class="highlight">http://assets.example.com/example.png</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: assets.example.com
+</span><span> exit code: 6</span><span> command output:<br> </span></pre><pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>HTTP/1.1 200 OK
+Server: nginx/1.10.3 (Ubuntu)
+Date: Wed, 29 Nov 2017 18:40:53 GMT
+Content-Type: image/png
+Content-Length: 81173
+Connection: keep-alive
+Last-Modified: Tue, 28 Nov 2017 21:19:37 GMT
+ETag: &quot;7b2d05a5bd1bfeebcac62990daeafd14&quot;
+x-amz-request-id: tx000000000000000013841-005a1eff1b-a89e4-nyc3a
+<span class="highlight">X-Cache-Status: HIT</span>
+Accept-Ranges: bytes
+</code></pre>
+<p>A <code>HIT</code>! We are now proxying and caching objects from Spaces. In the next step, we&#x2019;ll set up SSL certificates to secure communication to our proxy.</p>
+
+<h2 id="setting-up-tls-ssl">Setting Up TLS/SSL</h2>
+
+<p>Though this step is optional, it is highly recommended that your website and assets are made available over a secure HTTPS connection. You can learn how to download and install free certificates from the Let&#x2019;s Encrypt certificate authority by reading our tutorial <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-let-s-encrypt-with-nginx-server-blocks-on-ubuntu-16-04">How To Set Up Let&#x2019;s Encrypt with Nginx Server Blocks on Ubuntu 16.04</a>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this tutorial we created an Nginx configuration to proxy requests for objects to the Spaces service. We then added caching to improve performance, and a TLS/SSL certificate to improve privacy and security.</p>
+
+<p>The settings shown here are a good starting point, but you may want to optimize some of the cache parameters based on your own unique traffic patterns and needs. The <a href="https://nginx.org/en/docs/">Nginx documentation</a>, specifically the <a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx<em>http</em>proxy_module</a> can provide more detailed information on the available configuration options.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/bboucheron">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/da25db4890885df62c1bfb6afdb4c91cb3b4bca5.jpg?1491343657" alt="Da25db4890885df62c1bfb6afdb4c91cb3b4bca5"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/bboucheron">Brian Boucheron</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors one">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+
+
+        <li class="collaborators-byline-data">
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2495" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04/flag" data-flaggable-id="2495">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04&amp;url=https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04?utm_content=how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04?utm_content=how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04&amp;u=https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04?utm_content=how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">21</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+  
+  
+
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2495);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04","headline":"How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04","alternativeHeadline":"How To Proxy DigitalOcean Spaces with Nginx on Ubuntu 16.04","description":"DigitalOcean Spaces is an object storage service that is compatible with the S3 API. In this tutorial we will show you how to use Nginx to proxy requests for objects on your Space....","keywords":"Object Storage,Solutions","url":"https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-proxy-digitalocean-spaces-with-nginx-on-ubuntu-16-04"},"dateModified":"2019-04-11T17:31:28Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Brian Boucheron","@id":"https://www.digitalocean.com/community/users/bboucheron"}],"datePublished":"2017-12-01T03:18:24Z","image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"19"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"13"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
