@@ -1,0 +1,654 @@
+<!DOCTYPE html><html lang="en"><head>
+    <title>How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces | DigitalOcean</title>
+
+<meta name="description" content="In this guide, we&apos;ll demonstrate how to set up scheduled logical backups of a MongoDB instance to DigitalOcean Spaces using mongodump, Bash, and cron. In addition, we&apos;ll perform a data recovery exercise using mongorestore.">
+<meta name="keywords" content="Solutions Backups MongoDB DigitalOcean">
+
+<meta name="og:title" content="How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces | DigitalOcean">
+<meta name="og:description" content="In this guide, we&apos;ll demonstrate how to set up scheduled logical backups of a MongoDB instance to DigitalOcean Spaces using mongodump, Bash, and cron. In addition, we&apos;ll perform a data recovery exercise using mongorestore.">
+<meta name="og:site_name" content="DigitalOcean">
+<meta name="og:type" content="article">
+<meta name="og:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+<meta name="twitter:site" content="DigitalOcean">
+<meta name="twitter:title" content="How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces | DigitalOcean">
+<meta name="twitter:description" content="In this guide, we&apos;ll demonstrate how to set up scheduled logical backups of a MongoDB instance to DigitalOcean Spaces using mongodump, Bash, and cron. In addition, we&apos;ll perform a data recovery exercise using mongorestore.">
+<meta name="twitter:creator" content="DigitalOcean">
+<meta name="twitter:card" content="photo">
+<meta name="twitter:url" content="https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces">
+<meta name="twitter:image" content="https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg">
+
+  <link rel="canonical" href="https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces">
+
+<link rel="preconnect" href="https://digitalocean.cdn.prismic.io">
+<link rel="preconnect" href="https://hello.myfonts.net">
+
+
+    <link rel="stylesheet" media="all" href="/assets/community/application-b828e623bec3c41208f9f701850222a0.css">
+
+    
+    <meta name="csrf-param" content="authenticity_token">
+<meta name="csrf-token" content="L4xUwthZx0Yay2SAC6nOCeULVFhEPN+10JZcrsXnItR6HhptCXKHvlxw0vtNkOZb0aAggb0HPdx67yFXfKHzJQ==">
+    <script src="/assets/community/prerequisites-9a51dfaadf0d3629cc636286133a958d.js"></script>
+    <script>
+//<![CDATA[
+
+  window.cookieDomain = '.digitalocean.com';
+
+//]]>
+</script><script src="https://assets.digitalocean.com/cookieConsent/cookieConsent.js"></script>
+<link rel="stylesheet" href="https://assets.digitalocean.com/cookieConsent/cookieConsent.css">
+
+    <script type="text/javascript">
+  if(window.analytics=window.analytics||[],window.analytics.included)window.console&&console.error&&console.error("analytics.js included twice");else{window.analytics.included=!0,window.analytics.methods=["identify","group","track","page","pageview","alias","ready","on","once","off","trackLink","trackForm","trackClick","trackSubmit"],window.analytics.factory=function(a){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(a),window.analytics.push(n),window.analytics}};for(var i=0;i<window.analytics.methods.length;i++){var key=window.analytics.methods[i];window.analytics[key]=window.analytics.factory(key)}window.analytics.load=function(a){var n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+a+"/analytics.min.js";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(n,t)},window.analytics.SNIPPET_VERSION="2.0.9",window.analytics.load("puo3uv968t")}
+  window.analytics.page();
+</script>
+
+<script src="/assets/community/internalCookies-d2a3579f6b37d00c8045b16853b90462.js"></script>
+
+      <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/community/tutorials/feed">
+    <script>
+      window.comApp = {
+        prefix: '/community',
+        svgIconPath: 'https://www.digitalocean.com/assets/community/icon-sprite-d76eb75d70ccf8ffb4c0b47b7dbc88ca.svg',
+        railsEnv: 'production',
+        rootUrl: 'https://www.digitalocean.com/community',
+        algolia_application_id: '6ZHEUVKJ88',
+        algolia_api_key: 'c5470567eae7fa1177d43222e18ba086'
+      };
+    </script>
+      <script src="https://go.digitalocean.com/js/forms2/js/forms2.min.js"></script>
+
+    <script src="/assets/community/application-dd2f12c7d68945c016e67a784d8785fc.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+                            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/3.0.1/github-markdown.min.css"><style>
+                        .markdown-body {
+                            box-sizing: border-box;
+                            min-width: 200px;
+                            max-width: 980px;
+                            margin: 0 auto;
+                            padding: 45px;
+                        }
+                    
+                        @media (max-width: 767px) {
+                            .markdown-body {
+                                padding: 15px;
+                            }
+                        }
+
+                        .passing { background-color: #e6ffe6 !important }
+                             .failing { background-color: #ffe6e6 !important }
+                        .verify { padding: 20px; width: 100%; white-space: pre-wrap}
+                    </style></head>
+  <body class="feature-filter-bar feature-upvotes tutorials-controller tutorial-single markdown-body" data-env="production" data-prefix="/community" data-user-id data-facebook-app-id="694818843983011" data-completed-tutorial-id data-tutorial-id="2617" data-js="tutorial" data-upvote="null" data-flagged>
+    
+
+    <h1 class="content-title Tutorial-header">How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces</h1>
+
+    <span class="meta-section timestamp"><span class="tutorial-date-text">Posted</span><span class="tutorial-date">May  1, 2018</span></span>
+
+    <span class="meta-section pageviews"><span class="icon icon-eye v-mid"></span><span class="views-count v-mid">14k</span><span class="sr-only"> views</span></span>
+
+    <span class="meta-section tags">
+      <a class="tag" href="/community/tags/solutions?type=tutorials">Solutions</a> <a class="tag" href="/community/tags/digitalocean?type=tutorials">DigitalOcean</a> <a class="tag" href="/community/tags/backups?type=tutorials">Backups</a> <a class="tag" href="/community/tags/mongodb?type=tutorials">MongoDB</a>
+      <a class="tag" href="/community/tags/ubuntu-16-04?type=tutorials">Ubuntu 16.04</a>
+    </span>
+  </div>
+
+  <div class="tutorial-authors">
+    <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/hjet">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/36486938f3a213655321555fec1d6765ab8a76f1.jpeg?1523552025" alt="36486938f3a213655321555fec1d6765ab8a76f1"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/hjet">Hanif Jetha</a></p>
+
+      <p>
+          <a class="advice" href="https://www.digitalocean.com/community/write-for-digitalocean">Become an author</a>
+      </p>
+    </li>
+  </ul>
+</div>
+
+  </div>
+
+
+    <div class="content-body tutorial-content" data-growable-markdown>
+      
+      <h3 id="introduction">Introduction</h3>
+
+<p>Regular database backups are a crucial step in guarding against unintended data loss events. In general, there are two broad categories of backups: filesystem-level (&#x201C;physical&#x201D;) backups and logical backups.</p>
+
+<p>Filesystem-level backups involve snapshotting the underlying data files at a point in time, and allowing the database to cleanly recover using the state captured in the snapshotted files. They are instrumental in backing up large databases quickly, especially when used in tandem with filesystem snapshots, such as <a href="http://tldp.org/HOWTO/LVM-HOWTO/snapshots_backup.html">LVM snapshots</a>, or block storage volume snapshots, such as <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-digitalocean-snapshots">DigitalOcean Block Storage Snapshots</a>. </p>
+
+<p>Logical backups involve using a tool (e.g. <code>mongodump</code> or <code>pg_dump</code>) to export data from the database into backup files, which are then restored using a corresponding restore tool (e.g. <code>mongorestore</code> or <code>pg_restore</code>). They offer granular control over what data to back up and restore and backups are often portable across database versions and installations. As logical backup tools read all data being backed up through memory, they can be slow and cause non-trivial additional load for particularly large databases.</p>
+
+<p>Designing an effective backup and recovery strategy often involves trading off performance impact, implementation costs, and data storage costs with recovery speed, data integrity, and backup coverage. The optimal solution will depend on your recovery point and time <a href="https://en.wikipedia.org/wiki/Recovery_point_objective">objectives</a> and database scale and architecture.</p>
+
+<p>In this guide, we&#x2019;ll demonstrate how to back up a MongoDB database using <code>mongodump</code>, a built-in logical backup tool. We&#x2019;ll then show how to compress and upload the resulting serialized data backup files to <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-digitalocean-spaces">DigitalOcean Spaces</a>, a highly redundant object store. We&#x2019;ll also show how to regularly schedule the backup and upload operation using Bash and <code>cron</code>, and finally conclude with a sample data recovery scenario.</p>
+
+<p>By the end of this tutorial, you&#x2019;ll have implemented the framework for an extensible automated backup strategy that will allow you to quickly recover should your application suffer from data loss. For smaller to medium-sized databases, logical backups using <code>mongodump</code> give you fine-grained control over what data to back up and recover. Storage of these compressed backup archives in DigitalOcean Spaces ensures that they are readily available in a durable object store, so that your application data is protected and quickly recoverable should a data loss event occur. </p>
+
+<p><span class="note"><strong>Note:</strong> There may be some performance impact when using the <code>mongodump</code> tool, especially on highly loaded databases. You should test this procedure first using a non-production database with simulated load to verify that this method will work in your production deployment.<br></span></p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<p>Before you get started with this guide, make sure you have the following prerequisites available to you:</p>
+
+<ul>
+<li>An Ubuntu 16.04 Droplet with a non-root user that has sudo privileges, as detailed in <a href="https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-16-04">Initial Server Setup with Ubuntu 16.04</a></li>
+<li>A running MongoDB 3.2+ installation, as detailed in <a href="https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-16-04">How to Install MongoDB on Ubuntu 16.04</a></li>
+<li>A DigitalOcean Space and set of API credentials, as detailed in <a href="https://www.digitalocean.com/community/tutorials/how-to-create-a-digitalocean-space-and-api-key">How To Create a DigitalOcean Space and API Key</a>. </li>
+<li>The <code>s3cmd</code> command-line file transfer client (2.X) installed as detailed in <a href="https://www.digitalocean.com/community/tutorials/how-to-use-logrotate-and-s3cmd-to-archive-logs-to-object-storage-on-ubuntu-16-04#step-1-%E2%80%94-installing-s3cmd"><strong>Step 1</strong> of How To Use Logrotate and S3cmd to Archive Logs to Object Storage on Ubuntu 16.04</a></li>
+<li><code>s3cmd</code> configured to access your Space, as detailed in <a href="https://www.digitalocean.com/community/tutorials/how-to-configure-s3cmd-2-x-to-manage-digitalocean-spaces">How To Configure s3cmd 2.x To Manage DigitalOcean Spaces</a></li>
+</ul>
+
+<p>Once you&#x2019;ve logged in to your Droplet, have MongoDB up and running, and have created your Space, you&#x2019;re ready to get started.</p>
+
+<h2 id="step-1-&#x2014;-insert-test-data">Step 1 &#x2014; Insert Test Data</h2>
+
+<p>If you&#x2019;re starting from a clean MongoDB installation and haven&#x2019;t stored any data yet, you should first insert some sample data into a dummy <code>restaurants</code> collection for test purposes. If you already have some collections and documents stored in your database, feel free to skip this step and continue on to <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces#step-2-%E2%80%94-use-mongodump-to-back-up-mongodb-data">Step 2</a>.</p>
+
+<p>First, connect to the running database using the MongoDB shell:</p>
+<pre class="code-pre [command] failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">mongo
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: mongo: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You&#x2019;ll see the following Mongo shell prompt:</p>
+<pre class="code-pre [command] failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">MongoDB shell version: 3.2.19
+</li><li class="line" prefix="$">connecting to: test
+</li><li class="line" prefix="$">Welcome to the MongoDB shell.
+</li><li class="line" prefix="$">For interactive help, type &quot;help&quot;.
+</li><li class="line" prefix="$">For more comprehensive documentation, see
+</li><li class="line" prefix="$">    http://docs.mongodb.org/
+</li><li class="line" prefix="$">Questions? Try the support group
+</li><li class="line" prefix="$">    http://groups.google.com/group/mongodb-user
+</li><li class="line" prefix="$">Server has startup warnings:
+</li><li class="line" prefix="$">2018-04-11T20:30:57.320+0000 I CONTROL  [initandlisten]
+</li><li class="line" prefix="$">2018-04-11T20:30:57.320+0000 I CONTROL  [initandlisten] ** WARNING: /sys/kernel/mm/transparent_hugepage/defrag is &apos;always&apos;.
+</li><li class="line" prefix="$">2018-04-11T20:30:57.320+0000 I CONTROL  [initandlisten] **        We suggest setting it to &apos;never&apos;
+</li><li class="line" prefix="$">2018-04-11T20:30:57.320+0000 I CONTROL  [initandlisten]
+</li><li class="line" prefix="$">&gt;
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: mongo: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>By default, the shell connects to the <code>test</code> database.</p>
+
+<p>Let&#x2019;s list the collections present in the <code>test</code> database:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="&gt;">show collections
+</li></ul></code></pre>
+<p>Since we haven&#x2019;t inserted anything into the database yet, there are no collections, and we&#x2019;re brought back to the prompt with no output.</p>
+
+<p>Let&#x2019;s insert a document into a dummy <code>restaurants</code> collection, which will automatically be created (as it doesn&#x2019;t yet exist):</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="&gt;">db.restaurants.insert({&apos;name&apos;: &apos;Pizzeria Sammy&apos;})
+</li></ul></code></pre>
+<p>You&#x2019;ll see the following output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>WriteResult({ &quot;nInserted&quot; : 1 })
+</code><br><br></pre>
+<p>This indicates that the insert operation was successful.</p>
+
+<p>Let&#x2019;s list collections once again:</p>
+<pre class="code-pre [custom_prefix]"><code langs><ul class="prefixed"><li class="line" prefix="&gt;">show collections
+</li></ul></code></pre>
+<p>We now see our newly created <code>restaurants</code> collection:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>restaurants
+</code></pre>
+<p>To exit the MongoDB shell, press <code>CTRL</code> + <code>D</code>.</p>
+
+<p>Now that we&#x2019;ve stored some sample data in the database, we&#x2019;re ready to back it up. </p>
+
+<h2 id="step-2-&#x2014;-use-mongodump-to-back-up-mongodb-data">Step 2 &#x2014; Use <code>mongodump</code> to Back Up MongoDB Data</h2>
+
+<p>We&#x2019;ll now use the built-in <code>mongodump</code> utility to back up (or &#x201C;dump&#x201D;) an entire MongoDB database to a compressed archive file.</p>
+
+<p>First, let&#x2019;s create a temporary directory called <code>backup</code> to store the archive created by <code>mongodump</code>:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">mkdir backup
+</li></ul></code></pre>
+<p>Now, let&#x2019;s back up the <code>test</code> database in this MongoDB instance to a compressed archive file called <code>test_dump.gz</code>. If your instance contains other databases, you can substitute another database name for <code>test</code> after the <code>--db</code> flag. You also may omit the <code>--db</code> flag to back up <strong>all</strong> databases in your MongoDB instance.</p>
+
+<p><span class="note"><strong>Note:</strong> The following command should be run from the terminal and <strong>not</strong> the Mongo shell.<br></span></p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">mongodump --db <span class="highlight">test</span> --archive=./<span class="highlight">backup</span>/<span class="highlight">test_dump.gz</span> --gzip
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: mongodump: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>Here, we use the <code>--archive</code> flag to specify that we&#x2019;d like to save all the data to a single archive file (whose location is specified by the <code>archive</code> parameter) , and the <code>--gzip</code> flag to specify that we&#x2019;d like to compress this file. In addition, you optionally may use the <code>--collection</code> or <code>--query</code> flags to select a given collection or query to archive. To learn more about these flags, consult the <code>mongodump</code> <a href="https://docs.mongodb.com/manual/reference/program/mongodump/">documentation</a>.</p>
+
+<p>After running the dump command, you will see the following output:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>2018-04-13T16:29:32.191+0000    writing test.restaurants to archive &apos;./<span class="highlight">backup/test_dump.gz</span>&apos;
+2018-04-13T16:29:32.192+0000    done dumping test.restaurants (1 document)
+</code><br><br><span>&#xFE0F;&#x2755;error: bash: mongodump: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>This indicates that our test data has successfully been dumped.</p>
+
+<p>In the next step, we&#x2019;ll upload this backup archive to object storage.</p>
+
+<h2 id="step-3-&#x2014;-upload-the-backup-archive-to-digitalocean-spaces">Step 3 &#x2014; Upload the Backup Archive to DigitalOcean Spaces</h2>
+
+<p>To upload this archive to our DigitalOcean Space, we&#x2019;ll need to use the <code>s3cmd</code> tool, which we installed and configured in the <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-mongodb-backups-to-digitalocean-spaces#prerequisites">Prerequisites</a>.</p>
+
+<p>We&#x2019;ll first test our <code>s3cmd</code> configuration and attempt to access our backups Space. In this tutorial, we&#x2019;ll use <code>mongo-backup-demo</code> as our Space name, but you should fill in the actual name of your Space:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">s3cmd info s3://<span class="highlight">mongo-backup-demo</span>/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You&#x2019;ll see the following output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>s3://<span class="highlight">mongo-backup-demo</span>/ (bucket):
+   Location:  nyc3
+   Payer:     BucketOwner
+   Expiration Rule: none
+   Policy:    none
+   CORS:      none
+   ACL:       3587522: FULL_CONTROL
+</code></pre>
+<p>Which indicates the connection was successful and <code>s3cmd</code> can transfer objects to the Space.</p>
+
+<p>Let&#x2019;s transfer the archive we created in Step 2 to our Space using the <code>put</code> command:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">s3cmd put <span class="highlight">./backup/test_dump.gz</span> s3://<span class="highlight">mongo-backup-demo/</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You&#x2019;ll see some file transfer output:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>upload: &apos;<span class="highlight">./backup/test_dump.gz</span>&apos; -&gt; &apos;s3://<span class="highlight">mongo-backup-demo/test_dump.gz</span>&apos;  [1 of 1]
+ 297 of 297   100% in    0s    25.28 kB/s  done
+</code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>Once the transfer completes, we&#x2019;ll verify that the file was successfully transferred to our Space by listing the Space contents:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">s3cmd ls s3://<span class="highlight">mongo-backup-demo</span>/
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You should see the backup archive file:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>2018-04-13 20:39       297   s3://<span class="highlight">mongo-backup-demo/test_dump.gz</span>
+</code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>At this point you&#x2019;ve successfully backed up the <code>test</code> MongoDB database and transferred the backup archive to your DigitalOcean Space.</p>
+
+<p>In the next section we&#x2019;ll cover how to script the above procedure using Bash so that we can schedule it using <code>cron</code>.</p>
+
+<h2 id="step-4-&#x2014;-create-and-test-backup-script">Step 4 &#x2014; Create and Test Backup Script</h2>
+
+<p>Now that we&#x2019;ve backed up our MongoDB database to a compressed archive file and transferred this file to our Space, we can combine these manual steps into a single Bash script.</p>
+
+<h3 id="create-backup-script">Create Backup Script</h3>
+
+<p>We&#x2019;ll first write a script combining the <code>mongodump</code> and <code>s3cmd put</code> commands, and add a few extra bells and whistles, like some logging (using <code>echo</code>s).</p>
+
+<p>Open a blank file in your preferred text editor (here we&#x2019;ll use <code>nano</code>):</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">nano backup_mongo.sh
+</li></ul></code></pre>
+<p>Paste in the following code snippets, being sure to update the relevant values to refer to your own Space, database, and file names. We&#x2019;ll call the file <code>backup_mongo.sh</code>, but you may name this file however you&#x2019;d like. You can also find the full script at the end of this section.</p>
+
+<p>Let&#x2019;s go through this script piece by piece:</p>
+<div class="code-label " title="backup_mongo.sh">backup_mongo.sh</div><pre class="code-pre "><code langs>#!/bin/bash
+
+set -e
+&#x2026;
+</code></pre>
+<p>Here, <code>#!/bin/bash</code> tells the shell to interpret the script as Bash code. <code>set -e</code> tells the interpreter to exit immediately if any of the script commands fail.</p>
+<div class="code-label " title="backup_mongo.sh">backup_mongo.sh</div><pre class="code-pre "><code langs>&#x2026;
+
+SPACE_NAME=<span class="highlight">mongo-backup-demo</span>
+BACKUP_NAME=$(date +%y%m%d_%H%M%S).gz
+DB=<span class="highlight">test</span>
+
+&#x2026;
+</code></pre>
+<p>In this section, we&#x2019;re setting three variables that we&#x2019;ll use later on:</p>
+
+<ul>
+<li><code>SPACE_NAME</code>: The name of the DigitalOcean space to which we&#x2019;re uploading our backup file</li>
+<li><code>BACKUP_NAME</code>: The backup archive&#x2019;s name. Here, we set it to a basic date-time string.</li>
+<li><code>DB</code>: Specifies which MongoDB database the script will back up. If you&#x2019;re backing up the entire MongoDB instance (all databases), this variable won&#x2019;t be used.</li>
+</ul>
+<div class="code-label " title="backup_mongo.sh">backup_mongo.sh</div><pre class="code-pre "><code langs>&#x2026;
+
+date
+echo &quot;Backing up MongoDB database to DigitalOcean Space: $SPACE_NAME&quot;
+
+echo &quot;Dumping MongoDB $DB database to compressed archive&quot;
+mongodump --db $DB --archive=$HOME/<span class="highlight">backup/tmp_dump.gz</span> --gzip
+
+echo &quot;Copying compressed archive to DigitalOcean Space: $SPACE_NAME&quot;
+s3cmd put $HOME/<span class="highlight">backup/tmp_dump.gz</span> s3://$SPACE_NAME/$BACKUP_NAME
+
+&#x2026;
+</code></pre>
+<p>We then print the date and time (for logging purposes), and begin the backup by running the <code>mongodump</code> command we tested above. We once again save the backup archive to <code>~/backup/</code>.</p>
+
+<p>We next use <code>s3cmd</code> to copy this archive to the location specified by those two <code>SPACE_NAME</code> and <code>BACKUP_NAME</code> variables. For example, if our Space name is <code>mongo-backup-demo</code> and the current date and time is <code>2018/04/12 12:42:21</code>, the backup will be named <code>180412_124221.gz</code> and it&#x2019;ll be saved to the <code>mongo-backup-demo</code> Space.</p>
+<div class="code-label " title="backup_mongo.sh">backup_mongo.sh</div><pre class="code-pre "><code langs>&#x2026;
+
+echo &quot;Cleaning up compressed archive&quot;
+rm $HOME/<span class="highlight">backup/tmp_dump.gz</span>
+
+echo &apos;Backup complete!&apos;
+
+</code></pre>
+<p>Here we remove the backup archive from the <code>~/backup</code> directory as we&#x2019;ve successfully copied it to our Space, with final output indicating that the backup is complete.</p>
+
+<p>After combining all these code snippets, the full script should look like this:</p>
+<div class="code-label " title="backup_mongo.sh">backup_mongo.sh</div><pre class="code-pre  passing"><span>&#x2713; </span><code langs>#!/bin/bash
+
+set -e
+
+SPACE_NAME=<span class="highlight">mongo-backup-demo</span>
+BACKUP_NAME=$(date +%y%m%d_%H%M%S).gz
+DB=<span class="highlight">test</span>
+
+date
+echo &quot;Backing up MongoDB database to DigitalOcean Space: $SPACE_NAME&quot;
+
+echo &quot;Dumping MongoDB $DB database to compressed archive&quot;
+mongodump --db $DB --archive=$HOME/<span class="highlight">backup/tmp_dump.gz</span> --gzip
+
+echo &quot;Copying compressed archive to DigitalOcean Space: $SPACE_NAME&quot;
+s3cmd put $HOME/<span class="highlight">backup/tmp_dump.gz</span> s3://$SPACE_NAME/$BACKUP_NAME
+
+echo &quot;Cleaning up compressed archive&quot;
+rm $HOME/<span class="highlight">backup/tmp_dump.gz</span>
+
+echo &apos;Backup complete!&apos;
+</code></pre>
+<p>Be sure to save this file when you&#x2019;re done.</p>
+
+<p>Next, we&#x2019;ll test this script to validate that all the subcommands work.</p>
+
+<h3 id="test-backup-script">Test Backup Script</h3>
+
+<p>Let&#x2019;s quickly run the <code>backup_mongo.sh</code> script.</p>
+
+<p>First, make the script executable:</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">chmod +x backup_mongo.sh
+</li></ul></code></pre>
+<p>Now, run the script:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">./backup_mongo.sh
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: ./backup_mongo.sh: line 13: mongodump: command not found
+</span><span> exit code: 127</span><span> command output:<br> Sun Jan 12 17:32:32 UTC 2020
+Backing up MongoDB database to DigitalOcean Space: mongo-backup-demo
+Dumping MongoDB test database to compressed archive</span></pre>
+<p>You will see the following output:</p>
+<pre class="code-pre  failing"><span>&#x10102; </span><span>&#x10102; </span><span>&#x10102; </span><code langs><div class="secondary-code-label " title="Output">Output</div>Mon Apr 16 22:20:26 UTC 2018
+Backing up MongoDB database to DigitalOcean Space: <span class="highlight">mongo-backup-demo</span>
+Dumping MongoDB test database to compressed archive
+2018-04-16T22:20:26.664+0000    writing test.restaurants to archive &apos;/home/<span class="highlight">sammy/backup/tmp_dump.gz</span>&apos;
+2018-04-16T22:20:26.671+0000    done dumping test.restaurants (1 document)
+Copying compressed archive to DigitalOcean Space: <span class="highlight">mongo-backup-demo</span>
+upload: &apos;/home/<span class="highlight">sammy/backup/tmp_dump.gz</span>&apos; -&gt; &apos;s3://<span class="highlight">mongo-backup-demo/180416_222026.gz</span>&apos;  [1 of 1]
+ 297 of 297   100% in    0s     3.47 kB/s  done
+Cleaning up compressed archive
+Backup complete!
+</code><br><br><span>&#xFE0F;&#x2755;error: ./backup_mongo.sh: line 13: mongodump: command not found
+</span><span> exit code: 127</span><span> command output:<br> Sun Jan 12 17:32:32 UTC 2020
+Backing up MongoDB database to DigitalOcean Space: mongo-backup-demo
+Dumping MongoDB test database to compressed archive</span><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span><br><br><span>&#xFE0F;&#x2755;error: bash: mongorestore: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>We&#x2019;ve successfully created a backup shell script and can now move on to scheduling it using <code>cron</code>.</p>
+
+<h2 id="step-5-&#x2014;-schedule-daily-backups-using-cron">Step 5 &#x2014; Schedule Daily Backups Using Cron</h2>
+
+<p>To schedule a nightly run of the backup script, we&#x2019;ll use <code>cron</code>, a job scheduling utility built-in to Unix-like operating systems.</p>
+
+<p>First, we&#x2019;ll create a directory to store the logs for our backup script. Next, we&#x2019;ll add the backup script to the crontab (<code>cron</code>&#x2019;s configuration file) so <code>cron</code> schedules it to run nightly. Because <code>cron</code> supports any regular frequency, you can optionally schedule weekly or monthly backups.</p>
+
+<h3 id="create-logging-directory">Create Logging Directory</h3>
+
+<p>Let&#x2019;s create a directory to store our backup script&#x2019;s log files. These logs will allow us to periodically check up on the backup script to ensure that all is well, and debug should some command fail.</p>
+
+<p>Create a <code>mongo_backup</code> subdirectory in <code>/var/log</code> (by convention used for logging):</p>
+<pre class="code-pre command passing"><span>&#x2713; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo mkdir /var/log/<span class="highlight">mongo_backup</span>
+</li></ul></code></pre>
+<p>Now, make that directory writeable to our Unix user. In this case, our user&#x2019;s name is <strong>sammy</strong>, but you should use the relevant non-root username with sudo privileges for your server.</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">sudo chown <span class="highlight">sammy:sammy</span> /var/log/<span class="highlight">mongo_backup</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: chown: invalid user: &#x2018;sammy:sammy&#x2019;
+</span><span> exit code: 1</span><span> command output:<br> </span></pre>
+<p>Our Unix user <strong>sammy</strong> can now write to <code>/var/log/mongo_backup</code>. Since the cronjob will run as <strong>sammy</strong>, it can now write its log files to this directory. </p>
+
+<p>Let&#x2019;s create the scheduled cronjob.</p>
+
+<h3 id="create-cronjob">Create Cronjob</h3>
+
+<p>To create the cronjob, we&#x2019;ll edit the file containing the list of scheduled jobs, called the &#x201C;crontab.&#x201D; Note that there are multiple crontabs, one per user, and a system-wide crontab at <code>/etc/crontab</code>. In this tutorial, we&#x2019;ll run the backup script as our user <strong>sammy</strong>; depending on your use case, you may elect to run it from the system-wide crontab.</p>
+
+<p>Open up the crontab for editing:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">crontab -e
+</li></ul></code></pre>
+<p>You&#x2019;ll see the following menu allowing you to choose your preferred text editor:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>no crontab for sammy - using an empty one
+
+Select an editor.  To change later, run &apos;select-editor&apos;.
+  1. /bin/ed
+  2. /bin/nano        &lt;---- easiest
+  3. /usr/bin/vim.basic
+  4. /usr/bin/vim.tiny
+
+Choose 1-4 [2]: no crontab for sammy - using an empty one
+</code></pre>
+<p>Select your preferred editor; to choose <code>nano</code> enter <code>2</code>. Now, append the following line to the file, following the commented-out section:</p>
+<div class="code-label " title="crontab -e">crontab -e</div><pre class="code-pre "><code langs># For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+
+<span class="highlight">0 2 * * *</span> /home/<span class="highlight">sammy/mongo_backup.sh</span> &gt;&gt;/var/log/<span class="highlight">mongo_backup/mongo_backup.log</span> 2&gt;&amp;1
+
+</code></pre>
+<p>Be sure to include a trailing newline at the end of the crontab. Save and close the file.</p>
+
+<p>You&#x2019;ll see the following output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>no crontab for sammy - using an empty one
+crontab: installing new crontab
+</code></pre>
+<p>The backup script will now run at 2:00 AM every morning. Both <code>stdout</code> and <code>stderr</code> (the output and error streams) will be piped and appended to a log file called <code>mongo_backup.log</code> in the log directory we created earlier. </p>
+
+<p>You may change <code>0 2 * * *</code> (execute nightly at 2:00 AM in cron syntax) to your desired backup frequency and time. To learn more about cron and its syntax, consult our tutorial on <a href="https://www.digitalocean.com/community/tutorials/how-to-use-cron-to-automate-tasks-on-a-vps">How To Use Cron To Automate Tasks On A VPS</a>.</p>
+
+<p>We&#x2019;ll conclude this tutorial with a quick recovery exercise to ensure that our backups are functional.</p>
+
+<h2 id="step-6-&#x2014;-perform-a-test-recovery">Step 6 &#x2014; Perform a Test Recovery</h2>
+
+<p>Any backup strategy should contain a recovery procedure that is routinely tested. Here, we&#x2019;ll quickly test a restore from the compressed backup file we uploaded to DigitalOcean spaces.</p>
+
+<p>First, we&#x2019;ll download <code>test_dump.gz</code> from our Space to the home directory in our MongoDB Droplet:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">s3cmd get s3://<span class="highlight">mongo-backup-demo/test_dump.gz</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: s3cmd: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>You will see the following output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>download: &apos;s3://<span class="highlight">mongo-backup-demo/test_dump.gz</span>&apos; -&gt; &apos;./<span class="highlight">test_dump.gz</span>&apos;  [1 of 1]
+ 297 of 297   100% in    0s  1305.79 B/s  done
+</code></pre>
+<p>If you began this tutorial with a fresh MongoDB instance, you&#x2019;ll recall that it only contained the <code>test</code> database, which in turn was the only database we backed up.</p>
+
+<p>For demonstration purposes, we&#x2019;ll now drop this test database so that we can perform a clean restore. If we don&#x2019;t perform this first step, the restore procedure will encounter the original documents, which it&#x2019;ll skip. In your particular use case restoring only new documents may be acceptable, but for the purposes of this tutorial we&#x2019;d like to explicitly test a full restore into an empty database.</p>
+
+<p>Connect to your MongoDB instance using the <code>mongo</code> shell:</p>
+<pre class="code-pre command"><code langs><ul class="prefixed"><li class="line" prefix="$">mongo
+</li></ul></code></pre>
+<p>Now, <code>use</code> the <code>test</code> database, and drop it from the MongoDB instance:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="&gt;">use test
+</li><li class="line" prefix="&gt;">db.dropDatabase()
+</li></ul></code></pre>
+<p>You&#x2019;ll see the following output confirming the <code>test</code> drop:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>{ &quot;dropped&quot; : &quot;test&quot;, &quot;ok&quot; : 1 }
+</code></pre>
+<p>Now, exit the <code>mongo</code> shell and execute the <code>mongorestore</code> command:</p>
+<pre class="code-pre command failing"><span>&#x10102; </span><code langs><ul class="prefixed"><li class="line" prefix="$">mongorestore --gzip --archive=<span class="highlight">test_dump.gz</span> --db <span class="highlight">test</span>
+</li></ul></code><br><br><span>&#xFE0F;&#x2755;error: bash: mongorestore: command not found
+</span><span> exit code: 127</span><span> command output:<br> </span></pre>
+<p>Here, we specify that the source backup file is compressed and in &#x201C;archive file&#x201D; form (recall that we used the <code>--archive</code>  and <code>--gzip</code> flags when calling <code>mongodump</code>), and that we&#x2019;d like to restore to the <code>test</code> database.</p>
+
+<p>You will see the following output:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>2018-04-16T23:10:07.317+0000    creating intents for archive
+2018-04-16T23:10:07.453+0000    reading metadata for test.restaurants from archive &apos;<span class="highlight">test_dump.gz</span>&apos;
+2018-04-16T23:10:07.497+0000    restoring test.restaurants from archive &apos;<span class="highlight">test_dump.gz</span>&apos;
+2018-04-16T23:10:07.541+0000    restoring indexes for collection test.restaurants from metadata
+2018-04-16T23:10:07.541+0000    finished restoring test.restaurants (1 document)
+2018-04-16T23:10:07.541+0000    done
+</code></pre>
+<p>This indicates that the <code>test</code> restore succeeded.</p>
+
+<p>To conclude, let&#x2019;s confirm that our initial <code>restaurants</code> data has successfully been restored.</p>
+
+<p>Open up the MongoDB shell and query the <code>restaurants</code> collection:</p>
+<pre class="code-pre custom_prefix"><code langs><ul class="prefixed"><li class="line" prefix="&gt;">db.restaurants.find()
+</li></ul></code></pre>
+<p>You should see the object we saved in the first step of this tutorial:</p>
+<pre class="code-pre "><code langs><div class="secondary-code-label " title="Output">Output</div>{ &quot;_id&quot; : ObjectId(&quot;5ace7614dbdf8137afe60025&quot;), &quot;name&quot; : &quot;Pizzeria Sammy&quot; }
+</code></pre>
+<p>You&#x2019;ve now successfully implemented and tested this MongoDB backup strategy.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In this tutorial, we&#x2019;ve learned how to implement and test a strategy for nightly logical MongoDB backups.</p>
+
+<p>This guide can be extended or modified in many ways. Here are some quick suggestions:</p>
+
+<ul>
+<li>Depending on your recovery point objectives (RPOs), you may want to increase or decrease the suggested backup frequency to match your data recovery window.</li>
+<li>Another helpful addition would be an alert function, triggered if a backup script subcommand fails (e.g. this function could send an email to a regularly monitored alert inbox).</li>
+<li>This script does not handle Spaces object deletion. You may want to clean out backups older than, say, 6 months or so.</li>
+<li>You may want to implement a more complex <a href="https://en.wikipedia.org/wiki/Backup_rotation_scheme#Grandfather-father-son">backup rotation scheme</a>, depending on your production use case.</li>
+</ul>
+
+<p>As the <code>mongodump</code> procedure involves quickly reading through all the dumped data, this backup method is most suitable for small- to medium-sized databases, particularly for partial backups such as a specific collection or result set. Filesystem-level backups are recommended for larger deployments. To learn more about filesystem-level MongoDB backups, consult this tutorial on <a href="https://www.digitalocean.com/community/tutorials/how-to-back-up-mongodb-using-droplet-snapshots">How To Back Up MongoDB Using Droplet Snapshots</a>. To learn more about various methods of backing up a MongoDB database, you can consult the <a href="https://docs.mongodb.com/v3.2/core/backups/">MongoDB manual</a>. </p>
+
+<p>The solution presented in this tutorial leverages <code>mongodump</code> for granular control over backup data coverage and DigitalOcean Spaces for cost-effective and durable long-term data storage. To learn more about the <code>mongodump</code> backup utility, consult its <a href="https://docs.mongodb.com/manual/reference/program/mongodump/">reference page</a> in the MongoDB manual. To learn more about DigitalOcean Spaces, you can read <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-digitalocean-spaces">An Introduction To DigitalOcean Spaces</a>.</p>
+
+    </div>
+</div>
+
+<div class="tutorial-footer">
+  
+<div class="tutorial-footer-details">
+
+  <div class="postable-info-bar-container">
+  <div class="postable-info-bar">
+
+    <div class="author-byline">
+      <div class="component-collaborators-container">
+  <ul class="component-collaborators-content">
+        <li class="collaborator-byline-avatar">
+          <a href="/community/users/hjet">
+            <div class="mod-avatar mod-avatar-large"><img class="avatar avatar-large" src="../steps/https:/community-cdn-digitalocean-com.global.ssl.fastly.net/assets/users/avatars/large/36486938f3a213655321555fec1d6765ab8a76f1.jpeg?1523552025" alt="36486938f3a213655321555fec1d6765ab8a76f1"><span class="mod-star" title="MOD" data-toggle="tooltip" data-container="body"><span class="mod-star-icon"></span></span></div>
+</a>        </li>
+
+    <li class="collaborators-byline-data">
+        <p class="names">By <a href="/community/users/hjet">Hanif Jetha</a></p>
+
+      <p>
+      </p>
+    </li>
+  </ul>
+</div>
+
+    </div>
+  </div>
+</div>
+
+
+  <div class="section-content tutorial-contributors one">
+    <div class="component-collaborators-container">
+      <ul class="component-collaborators-content">
+
+
+
+        <li class="collaborators-byline-data">
+        </li>
+      </ul>
+    </div>
+  </div>
+
+    
+<div class="hsb--content">
+  <div class="hsb--undo hsb--hide">
+    <span class="icon icon-helpfulness-upvoted"></span>
+    <span class="hsb--question">You rated this helpful.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--vote-down-js" data-upvotable-type="Tutorial">Undo</button>
+  </div>
+
+  <div class="hsb--flagging-undo hsb--hide">
+    <span class="icon icon-helpfulness-flag"></span>
+    <span class="hsb--question">You reported this tutorial.</span>
+    <button name="button" type="submit" class="hsb--button-down hsb--unflagging-js">Undo</button>
+  </div>
+
+  <div class="hsb--do">
+    <span class="hsb--question">Was this helpful?</span>
+    <button name="button" type="submit" class="hsb--button hsb--vote-up-js" data-upvotable-id="2617" data-upvotable-type="Tutorial">Yes</button>
+    <button name="button" type="submit" class="hsb--button hsb--flagging-js" data-url="/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces/flag" data-flaggable-id="2617">No</button>
+  </div>
+
+  <div class="hsb--social-and-comments">
+    <div class="hsb--social-sharing">
+      <a target="_blank" class="share-popup" href="http://twitter.com/share?text=How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces&amp;url=https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces?utm_content=how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces&amp;utm_medium=community&amp;utm_source=twshare">
+        <span class="icon icon-helpfulness-twitter"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://www.facebook.com/sharer/sharer.php?u=https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces?utm_content=how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces&amp;utm_medium=community&amp;utm_source=fbshare">
+        <span class="icon icon-helpfulness-facebook"></span>
+</a>
+      <a target="_blank" class="share-popup" href="https://news.ycombinator.com/submitlink?t=How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces&amp;u=https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces?utm_content=how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces&amp;utm_medium=community&amp;utm_source=hnshare">
+        <span class="icon icon-helpfulness-hacker-news"></span>
+</a>    </div>
+
+    <div class="hsb--comment">
+      <span class="icon icon-helpfulness-comment"></span>
+      <strong class="amount">0</strong>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+  
+
+      <script>
+    $(function() {
+      window.initHelpfulnessActions(2617);
+    });
+  </script>
+  <script>
+    $(function() {
+      var p, h5, panel, remainingSpace;
+      var lineHeight = 31, clamp = 1;
+
+      var panels = document.querySelectorAll('li .panel-data');
+
+      for (var i = 0, len = panels.length; i < len; i++) {
+        panel = panels[i];
+
+        p = panel.querySelector('p');
+        h5 = panel.querySelector('h5');
+        remainingSpace = panel.offsetHeight - h5.offsetHeight;
+
+        // Clamp text only when the remaining space isn't enought for p content.
+        if (remainingSpace < p.scrollHeight) {
+          clamp = parseInt(p.offsetHeight / lineHeight);
+
+          p.style.cssText = "-webkit-line-clamp:" + clamp +
+            "; display: -webkit-box; -webkit-box-orient: vertical;";
+        }
+      }
+    });
+  </script>
+
+  <script>
+    $(function() {
+      if (!!window.init_sharing) {
+        window.init_sharing();
+      }
+      new window.NewsletterSignup();
+      new window.GrowableMarkdown({ target: '[data-growable-markdown]' });
+    });
+  </script>
+  <script type="application/ld+json">
+    {"@context":"http://schema.org","@type":"Article","name":"How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces","headline":"How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces","alternativeHeadline":"How To Set Up Scheduled MongoDB Backups to DigitalOcean Spaces","description":"In this guide, we'll demonstrate how to set up scheduled logical backups of a MongoDB instance to DigitalOcean Spaces using mongodump, Bash, and cron. In addition, we'll perform a data recovery exercise using mongorestore.","keywords":"Solutions,DigitalOcean,Backups,MongoDB,April 2018","url":"https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces","mainEntityOfPage":{"@type":"WebPage","@id":"https://www.digitalocean.com/community/tutorials/how-to-set-up-scheduled-logical-mongodb-backups-to-digitalocean-spaces"},"dateModified":"2018-05-08T16:20:34Z","inLanguage":"en","accessMode":"textual","accessModeSufficient":"textual","isAccessibleForFree":true,"license":"https://creativecommons.org/licenses/by-nc-sa/4.0/","publishingPrinciples":"https://www.digitalocean.com/community/tutorials/technical-recommendations-and-best-practices-for-digitalocean-s-tutorials","author":[{"@type":"Person","name":"Hanif Jetha","@id":"https://www.digitalocean.com/community/users/hjet"}],"datePublished":"2018-05-01T20:17:48Z","image":{"@type":"ImageObject","url":"https://www.digitalocean.com/assets/community/illustrations/DigitalOcean_Community-02cc36407e7a978ed4fc9ed98f3ed87c.jpg","height":375,"width":750},"interactionStatistic":[{"@type":"InteractionCounter","interactionType":"http://schema.org/LikeAction","userInteractionCount":"7"},{"@type":"InteractionCounter","interactionType":"http://schema.org/CommentAction","userInteractionCount":"0"}],"sourceOrganization":{"@type":"Organization","name":"DigitalOcean Community","url":"https://www.digitalocean.com/community"},"publisher":{"@type":"Organization","name":"DigitalOcean","url":"https://www.digitalocean.com","logo":{"@type":"ImageObject","url":"https://assets.digitalocean.com/logos/DO_Logo_horizontal_blue.png","width":351,"height":60}}}
+  </script>
+
+
+    
+  
+
+</body></html>
