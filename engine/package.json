@@ -22,7 +22,7 @@
     "infra.connectors": "github:ottomatica/infra.connectors",
     "mdast-util-to-hast": "^6.0.1",
     "mdast-util-to-string": "^1.0.6",
-    "prismjs": "1.15.0",
+    "prismjs": "1.23.0",
     "react": "^16.8.1",
     "rehype-raw": "^4.0.0",
     "rehype-stringify": "^5.0.0",
